@@ -7,6 +7,7 @@ import pandas as pd
 
 # Import the new TimeSeriesGenerator
 from entise.constants import Types
+from entise.constants.columns import Columns
 from entise.core.generator import TimeSeriesGenerator
 from entise.methods.auxiliary.internal.strategies import InternalOccupancy
 
@@ -69,13 +70,14 @@ plt.tight_layout()
 plt.savefig(os.path.join(cwd,"results/occupancy.png"))
 
 building_data = df[building_id][Types.HVAC]
+
 # Figure 1: Indoor & Outdoor Temperature and Solar Radiation (GHI)
 fig, ax1 = plt.subplots(figsize=(15, 6))
 
 # Solar radiation plot (GHI) with separate y-axis
 ax2 = ax1.twinx()
 ax2.plot(
-    building_data.index, data["weather"][Cols.SOLAR_GHI],
+    building_data.index, data["weather"][Columns.SOLAR_GHI],
     label="Solar Radiation (GHI)", color="tab:orange", alpha=0.3
 )
 ax2.set_ylabel("Solar Radiation (W/m²)")
@@ -83,8 +85,8 @@ ax2.legend(loc="upper right")
 ax2.set_ylim(-250, 1000)
 
 # Temperature plot
-ax1.plot(building_data.index, data["weather"][f"{Cols.TEMP_AIR}@2m"], label="Outdoor Temp", color="tab:cyan", alpha=0.7)
-ax1.plot(building_data.index, building_data[Cols.TEMP_IN], label="Indoor Temp", color="tab:blue")
+ax1.plot(building_data.index, data["weather"][f"{Columns.TEMP_AIR}@2m"], label="Outdoor Temp", color="tab:cyan", alpha=0.7)
+ax1.plot(building_data.index, building_data[Columns.TEMP_IN], label="Indoor Temp", color="tab:blue")
 ax1.set_ylabel("Temperature (°C)")
 ax1.set_title(f"Building ID: {building_id} - Temperatures and Solar Radiation")
 ax1.legend(loc="upper left")
@@ -94,7 +96,7 @@ ax1.set_ylim(-10, 40)
 ax1.set_zorder(ax2.get_zorder() + 1)
 ax1.patch.set_visible(False)  # required to see through ax1 to ax2
 plt.tight_layout()
-plt.show()
+plt.savefig(os.path.join(cwd,"results/temperature_and_radiation.png"))
 
 # Figure 2: Heating and Cooling Loads
 fig, ax = plt.subplots(figsize=(14, 5))
@@ -126,7 +128,7 @@ plt.show()
 fig, ax1 = plt.subplots(figsize=(15, 6))
 
 # Plot outdoor temperature on left y-axis
-air_temp = data["weather"][f"{Cols.TEMP_AIR}@2m"]
+air_temp = data["weather"][f"{Columns.TEMP_AIR}@2m"]
 ax1.plot(building_data.index, air_temp
          , label="Outdoor Temp", color="tab:cyan", alpha=0.7)
 
@@ -151,4 +153,5 @@ ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
 ax1.set_title(f"Building ID: {building_id} - Outdoor Temp & HVAC Loads")
 ax1.grid(True)
 fig.tight_layout()
-plt.show()
+plt.tight_layout()
+plt.savefig(os.path.join(cwd,"results/hvac_loads.png"))
