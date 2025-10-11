@@ -33,19 +33,15 @@ def generate_buildings():
             name=f"{row["bldg_id"]}_{row["year"]}",
             year_of_construction=row["year"],
             number_of_floors=row["in.geometry_stories"],
-            height_of_floors=3.2,
-            net_leased_area=280.0,
-            attic=,
-            cellar=,
-            dormer=,
-            residential_layout=,
-            inner_wall_approximation_approach=,
+            height_of_floors=2.7,
+            net_leased_area=row["in.sqft"]*0.09290304,
+            inner_wall_approximation_approach="teaser_default",#typical length * height of floors + 2 * typical width * height of floors
             )
 
 
-        prj.calc_all_buildings()
+    prj.calc_all_buildings()
 
-        prj.save_project("results","results/")
+    prj.save_project("results","results/")
 
 
 def calculate_rc():
@@ -82,26 +78,40 @@ def calculate_rc():
             R_list.append(R)
             C_list.append(C)
         # Parallel combination of resistances
-        R_eff = 1 / sum(1/r for r in R_list)
-        C_eff = sum(C_list)
+        if len(R_list)==0:
+            R_eff=0
+        else:
+            R_eff = 1 / sum(1/r for r in R_list)
+        if len (C_list)==0:
+            C_eff=0
+        else:
+            C_eff = sum(C_list)
+
         return R_eff, C_eff
 
-    # Extract the thermal zone
-    tz = data["project"]["buildings"]["ResidentialBuildingTabula"]["thermal_zones"]["SingleDwelling"]
+    for k,building in data["project"]["buildings"].items():
+        print(f"building : {k}")
 
-    # Compute R and C for all building components
-    R_outer, C_outer = elements_R_C(tz["outer_walls"])
-    R_windows, C_windows = elements_R_C(tz["windows"])
-    R_roof, C_roof = elements_R_C(tz["rooftops"])
-    R_floor, C_floor = elements_R_C(tz["floors"])
-    R_ground, C_ground = elements_R_C(tz.get("ground_floors", {}))
-    R_doors, C_doors = elements_R_C(tz.get("doors", {}))
-    R_ceiling, C_ceiling = elements_R_C(tz.get("ceilings", {}))
-
-    # Combine everything (walls, windows, roofs, floors, doors, ceilings)
-    # For R, we consider the main envelope in parallel: walls, windows, roof, floor, doors, ceiling
-    R_total = 1 / sum(1/r for r in [R_outer, R_windows, R_roof, R_floor, R_ground, R_doors, R_ceiling] if r > 0)
-    C_total = sum([C_outer, C_windows, C_roof, C_floor, C_ground, C_doors, C_ceiling])
-
-    print(f"Overall building R: {R_total:.3f} K/W")
-    print(f"Overall building C: {C_total:.0f} J/K")
+        #if k== "B498771_1918":
+        try:
+            # Extract the thermal zone
+            tz = building["thermal_zones"]["SingleDwelling"]
+            # Compute R and C for all building components
+            R_outer, C_outer = elements_R_C(tz["outer_walls"])
+            R_windows, C_windows = elements_R_C(tz["windows"])
+            R_roof, C_roof = elements_R_C(tz["rooftops"])
+            R_floor, C_floor = elements_R_C(tz.get("floors",{}))
+            R_ground, C_ground = elements_R_C(tz.get("ground_floors", {}))
+            R_doors, C_doors = elements_R_C(tz.get("doors", {}))
+            R_ceiling, C_ceiling = elements_R_C(tz.get("ceilings", {}))
+            # Combine everything (walls, windows, roofs, floors, doors, ceilings)
+            # For R, we consider the main envelope in parallel: walls, windows, roof, floor, doors, ceiling
+            R_total = 1 / sum(1/r for r in [R_outer, R_windows, R_roof, R_floor, R_ground, R_doors, R_ceiling] if r > 0)
+            C_total = sum([C_outer, C_windows, C_roof, C_floor, C_ground, C_doors, C_ceiling])
+            print(f"Overall building R: {R_total:.5f} K/W")
+            print(f"Overall building C: {C_total:.0f} J/K")
+            print("")
+        except Exception as e:
+            print("Error: "+str(e))    
+#generate_buildings()
+calculate_rc()
