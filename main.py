@@ -12,7 +12,7 @@ from entise.core.generator import TimeSeriesGenerator
 from entise.methods.auxiliary.internal.strategies import InternalOccupancy
 
 cwd="."
-objects = pd.read_csv(os.path.join(cwd, "objects.csv"))
+objects = pd.read_csv(os.path.join(cwd, "validation_objects_rc.csv"))
 data = {}
 common_data_folder = "common_data"
 for file in os.listdir(os.path.join(cwd, common_data_folder)):

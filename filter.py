@@ -143,4 +143,20 @@ def get_simulated_years():
     
 
 
-get_simulated_years()
+def copy_demand_files():
+    path = "C:/Users/escobarm/Desktop/thesis/validation_data/counties"
+    climate_zone_folders = os.listdir(path)
+    buildings=pd.read_csv("data/validation/objects_rc.csv")
+    save_path="data/validation/demand"
+
+    for _, bldg in buildings.iterrows():
+        foldername_elements=str(bldg["filename"]).split(".")[0].split("_")
+        try:
+            demand_path=f"{foldername_elements[0]}_{foldername_elements[1]}_{foldername_elements[2]}/households/{bldg["id"]}/{bldg["id"]}_timeseries_adjusted.csv"
+        except:
+            demand_path=f"{foldername_elements[0]}_{foldername_elements[1]}/households/{bldg["id"]}/{bldg["id"]}_timeseries_adjusted.csv"
+
+        demand_file=pd.read_csv(path+"/"+demand_path)
+        demand_file.to_csv(save_path+"/"+str(bldg["id"])+".csv",index=False)
+
+copy_demand_files()

@@ -36,15 +36,24 @@ def generate_buildings():
             height_of_floors=2.7,
             net_leased_area=row["in.sqft"]*0.09290304,
             inner_wall_approximation_approach="teaser_default",#typical length * height of floors + 2 * typical width * height of floors
+            height_of_floors=2.7,
+            net_leased_area=row["in.sqft"]*0.09290304,
+            inner_wall_approximation_approach="teaser_default",#typical length * height of floors + 2 * typical width * height of floors
             )
 
 
     prj.calc_all_buildings()
+    prj.calc_all_buildings()
 
+    prj.save_project("results","results/")
     prj.save_project("results","results/")
 
 
 def calculate_rc():
+
+    df= pd.read_csv("data/validation/single_family_detached_per_year.csv")
+    df["resistance[K W-1]"]=0
+    df["capacitance[J K-1]"]=0
 
     df= pd.read_csv("data/validation/single_family_detached_per_year.csv")
     df["resistance[K W-1]"]=0
@@ -82,6 +91,15 @@ def calculate_rc():
             R_list.append(R)
             C_list.append(C)
         # Parallel combination of resistances
+        if len(R_list)==0:
+            R_eff=0
+        else:
+            R_eff = 1 / sum(1/r for r in R_list)
+        if len (C_list)==0:
+            C_eff=0
+        else:
+            C_eff = sum(C_list)
+
         if len(R_list)==0:
             R_eff=0
         else:
@@ -133,7 +151,7 @@ def calculate_rc():
 
 def to_object_file():
     df=pd.read_csv("data/validation/single_family_detached_per_year_rc.csv")
-    df=df[["bldg_id","in.occupants","resistance[K W-1]","capacitance[J K-1]","in.heating_setpoint","in.cooling_setpoint","in.window_areas","filename","in.geometry_stories","in.weather_file_latitude","in.weather_file_longitude"]]
+    df=df[["bldg_id","year","in.occupants","resistance[K W-1]","capacitance[J K-1]","in.heating_setpoint","in.cooling_setpoint","in.window_areas","filename","in.geometry_stories","in.weather_file_latitude","in.weather_file_longitude"]]
     df.rename(
     columns={
         "in.occupants": "inhabitants",
