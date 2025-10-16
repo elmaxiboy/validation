@@ -102,10 +102,17 @@ def derive_internal_gains():
         #PHT-DERIVED OCCUPANCY
         data[Types.OCCUPANCY]=pd.read_csv(f"{occupancy_folder}/{Columns.OCCUPANCY_PHT}/{obj_id}.csv")
         data[Types.OCCUPANCY].set_index(Columns.DATETIME,inplace=True)
-        
+
         df=InternalOccupancy().generate(obj=obj.to_dict(),data=data)
 
         df.to_csv(f"data/validation/internal_gains/{Columns.OCCUPANCY_PHT}/{obj_id}.csv")
 
-derive_internal_gains()
+def derive_hvac():
+    objects = pd.read_csv(os.path.join(cwd, "objects_validation.csv"))
+    occupancy_folder="data/validation/occupancy"
+    objects=objects[[Objects.ID,"year",Objects.INHABITANTS,Objects.RESISTANCE,Objects.CAPACITANCE,Objects.TEMP_MIN,Objects.TEMP_MAX]]
 
+    for idx,obj in objects.iterrows():
+        data = {}
+        obj_id = str(obj["id"])
+        weather
