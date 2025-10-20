@@ -109,10 +109,89 @@ def derive_internal_gains():
 
 def derive_hvac():
     objects = pd.read_csv(os.path.join(cwd, "objects_validation.csv"))
-    occupancy_folder="data/validation/occupancy"
-    objects=objects[[Objects.ID,"year",Objects.INHABITANTS,Objects.RESISTANCE,Objects.CAPACITANCE,Objects.TEMP_MIN,Objects.TEMP_MAX]]
+    internal_gains_folder="data/validation/internal_gains"
+    weather_folder="data/validation/weather"
+    hvac_folder="data/validation/hvac"
+    objects=objects[[Objects.ID,"year",Objects.INHABITANTS,Objects.RESISTANCE,Objects.CAPACITANCE,Objects.TEMP_MIN,Objects.TEMP_MAX,Objects.FILE]]
+    objects[Types.HVAC]="1r1c"
+    df_summary=pd.DataFrame(columns=[
+    "id",
+    "year",
+    "method",    
+    "heating:demand[Wh]",
+    "heating:load_max[W]",
+    "cooling:demand[Wh]",
+    "cooling:load_max[W]"
+    ])
 
     for idx,obj in objects.iterrows():
-        data = {}
-        obj_id = str(obj["id"])
-        weather
+        try:
+            gen = TimeSeriesGenerator(logging_level=logging.WARNING)
+            data = {}
+            obj_id = str(obj["id"])
+            obj_year= obj["year"]
+
+            df_weather=pd.read_csv(f"{weather_folder}/{obj["filename"]}")
+            df_weather["datetime"]=pd.to_datetime(df_weather["timestamp"], unit="s")
+            df_weather=df_weather[[Columns.DATETIME,Columns.TEMP_AIR]]
+            df_weather[Columns.TEMP_AIR]=pd.to_numeric(df_weather[Columns.TEMP_AIR])-273.15
+            data[Objects.WEATHER]=df_weather
+
+            #GEOMA
+            df_internal_gains=pd.read_csv(f"{internal_gains_folder}/{Columns.OCCUPANCY_GEOMA}/{obj_id}.csv")
+            data[Objects.GAINS_INTERNAL]=df_internal_gains
+            gen.add_objects(obj.to_dict())
+
+            # Generate HVAC time series
+            summary, df = gen.generate(data, workers=1)
+
+            # Print summary
+            print(f"Summary occupancy GEOMA for bldg: {obj_id}, year: {obj_year}:")
+            print(summary)
+
+            df_summary.loc[len(df_summary)] = [
+            obj_id,
+            obj_year,
+            Columns.OCCUPANCY_GEOMA,
+            summary["heating:demand[Wh]"],
+            summary["heating:load_max[W]"],
+            summary["cooling:demand[Wh]"],
+            summary["cooling:load_max[W]"]
+            ]
+
+            df[int(obj_id)][Types.HVAC].to_csv(f"{hvac_folder}/{Columns.OCCUPANCY_GEOMA}/{obj_id}_{obj_year}.csv")
+
+            
+            #PHT
+            gen = TimeSeriesGenerator(logging_level=logging.WARNING)
+            data = {}
+            data[Objects.WEATHER]=df_weather
+
+            df_internal_gains=pd.read_csv(f"{internal_gains_folder}/{Columns.OCCUPANCY_PHT}/{obj_id}.csv")
+            data[Objects.GAINS_INTERNAL]=df_internal_gains
+            gen.add_objects(obj.to_dict())
+
+            # Generate HVAC time series
+            summary, df = gen.generate(data, workers=1)
+
+            # Print summary
+            print(f"Summary occupancy PHT for bldg: {obj_id}, year: {obj_year}:")
+            print(summary)
+
+            df[int(obj_id)][Types.HVAC].to_csv(f"{hvac_folder}/{Columns.OCCUPANCY_PHT}/{obj_id}_{obj_year}.csv")
+
+            df_summary.loc[len(df_summary)] = [
+            obj_id,
+            obj_year,
+            Columns.OCCUPANCY_PHT,
+            summary["heating:demand[Wh]"],
+            summary["heating:load_max[W]"],
+            summary["cooling:demand[Wh]"],
+            summary["cooling:load_max[W]"]
+            ]
+        except Exception as e:
+            logging.warning(f"Building: {obj_id}, year: {obj_year}: {e}")
+    
+    df_summary.to_csv("hvac_summary.csv",index=False)
+
+derive_hvac()
