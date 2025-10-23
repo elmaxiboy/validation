@@ -107,17 +107,23 @@ def derive_internal_gains():
 
         df.to_csv(f"data/validation/internal_gains/{Columns.OCCUPANCY_PHT}/{obj_id}.csv")
 
-def derive_hvac():
+def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
     objects = pd.read_csv(os.path.join(cwd, "objects_validation.csv"))
     internal_gains_folder="data/validation/internal_gains"
     weather_folder="data/validation/weather"
     hvac_folder="data/validation/hvac"
-    objects=objects[[Objects.ID,"year",Objects.INHABITANTS,Objects.RESISTANCE,Objects.CAPACITANCE,Objects.TEMP_MIN,Objects.TEMP_MAX,Objects.FILE]]
+    objects=objects[[Objects.ID,"year",Objects.INHABITANTS,Objects.RESISTANCE,Objects.CAPACITANCE,Objects.TEMP_MIN,Objects.TEMP_MAX,Objects.FILE,Objects.AREA,"stories"]]
     objects[Types.HVAC]="1r1c"
     df_summary=pd.DataFrame(columns=[
-    "id",
+    Objects.ID,
     "year",
-    "method",    
+    Objects.FILE,
+    Objects.INHABITANTS,
+    Objects.RESISTANCE,
+    Objects.CAPACITANCE,
+    Objects.AREA,
+    "stories",
+    "method",
     "heating:demand[Wh]",
     "heating:load_max[W]",
     "cooling:demand[Wh]",
@@ -125,49 +131,32 @@ def derive_hvac():
     ])
 
     for idx,obj in objects.iterrows():
-        try:
+            
             gen = TimeSeriesGenerator(logging_level=logging.WARNING)
             data = {}
-            obj_id = str(obj["id"])
-            obj_year= obj["year"]
+            obj_id =str(obj[Objects.ID])
+            obj_year=obj["year"]
+            obj_stories=obj["stories"]
+            obj_area=obj[Objects.AREA]
+            obj_filename=obj[Objects.FILE]
+            obj_inhabitants=obj[Objects.INHABITANTS]
+            obj_resistance=obj[Objects.RESISTANCE]
+            obj_capacitance=obj[Objects.CAPACITANCE]
+
+            #Filter year 2016
+            if int(obj_year)==2016:
+                continue
 
             df_weather=pd.read_csv(f"{weather_folder}/{obj["filename"]}")
             df_weather["datetime"]=pd.to_datetime(df_weather["timestamp"], unit="s")
+            
+            #Work only with TEMP.AIR
             df_weather=df_weather[[Columns.DATETIME,Columns.TEMP_AIR]]
             df_weather[Columns.TEMP_AIR]=pd.to_numeric(df_weather[Columns.TEMP_AIR])-273.15
-            data[Objects.WEATHER]=df_weather
-
-            #GEOMA
-            df_internal_gains=pd.read_csv(f"{internal_gains_folder}/{Columns.OCCUPANCY_GEOMA}/{obj_id}.csv")
-            data[Objects.GAINS_INTERNAL]=df_internal_gains
-            gen.add_objects(obj.to_dict())
-
-            # Generate HVAC time series
-            summary, df = gen.generate(data, workers=1)
-
-            # Print summary
-            print(f"Summary occupancy GEOMA for bldg: {obj_id}, year: {obj_year}:")
-            print(summary)
-
-            df_summary.loc[len(df_summary)] = [
-            obj_id,
-            obj_year,
-            Columns.OCCUPANCY_GEOMA,
-            summary["heating:demand[Wh]"],
-            summary["heating:load_max[W]"],
-            summary["cooling:demand[Wh]"],
-            summary["cooling:load_max[W]"]
-            ]
-
-            df[int(obj_id)][Types.HVAC].to_csv(f"{hvac_folder}/{Columns.OCCUPANCY_GEOMA}/{obj_id}_{obj_year}.csv")
-
             
-            #PHT
-            gen = TimeSeriesGenerator(logging_level=logging.WARNING)
-            data = {}
             data[Objects.WEATHER]=df_weather
 
-            df_internal_gains=pd.read_csv(f"{internal_gains_folder}/{Columns.OCCUPANCY_PHT}/{obj_id}.csv")
+            df_internal_gains=pd.read_csv(f"{internal_gains_folder}/{method}/{obj_id}.csv")
             data[Objects.GAINS_INTERNAL]=df_internal_gains
             gen.add_objects(obj.to_dict())
 
@@ -175,23 +164,26 @@ def derive_hvac():
             summary, df = gen.generate(data, workers=1)
 
             # Print summary
-            print(f"Summary occupancy PHT for bldg: {obj_id}, year: {obj_year}:")
+            print(f"Summary occupancy {method} for bldg: {obj_id}, year: {obj_year}:")
             print(summary)
 
-            df[int(obj_id)][Types.HVAC].to_csv(f"{hvac_folder}/{Columns.OCCUPANCY_PHT}/{obj_id}_{obj_year}.csv")
+            df_summary.at[idx,Objects.ID] = obj_id
+            df_summary.at[idx, "method"] = method 
+            df_summary.at[idx,"year"] = obj_year
+            df_summary.at[idx,"stories"]=obj_stories
+            df_summary.at[idx,Objects.AREA]=obj_area
+            df_summary.at[idx,Objects.FILE]=obj_filename
+            df_summary.at[idx,Objects.RESISTANCE]=obj_resistance
+            df_summary.at[idx,Objects.CAPACITANCE]=obj_capacitance
+            df_summary.at[idx,Objects.INHABITANTS]=obj_inhabitants
+            df_summary.at[idx, "heating:demand[Wh]"] = summary["heating:demand[Wh]"].iloc[0]
+            df_summary.at[idx, "heating:load_max[W]"] = summary["heating:load_max[W]"].iloc[0]
+            df_summary.at[idx, "cooling:demand[Wh]"] = summary["cooling:demand[Wh]"].iloc[0]
+            df_summary.at[idx, "cooling:load_max[W]"] = summary["cooling:load_max[W]"].iloc[0]
 
-            df_summary.loc[len(df_summary)] = [
-            obj_id,
-            obj_year,
-            Columns.OCCUPANCY_PHT,
-            summary["heating:demand[Wh]"],
-            summary["heating:load_max[W]"],
-            summary["cooling:demand[Wh]"],
-            summary["cooling:load_max[W]"]
-            ]
-        except Exception as e:
-            logging.warning(f"Building: {obj_id}, year: {obj_year}: {e}")
-    
-    df_summary.to_csv("hvac_summary.csv",index=False)
+            #df[int(obj_id)][Types.HVAC].to_csv(f"{hvac_folder}/{method}/{obj_id}_{obj_year}.csv")
 
-derive_hvac()
+    df_summary.to_csv(f"hvac_summary_{method}.csv",index=False)
+
+derive_hvac(Columns.OCCUPANCY_GEOMA)
+derive_hvac(Columns.OCCUPANCY_PHT)

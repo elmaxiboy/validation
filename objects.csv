@@ -1,2 +1,0 @@
-id,hvac,resistance[K W-1],capacitance[J K-1],occupancy,electricity,electricity:filename,occupancy:occupancy_lambda,apply_night_schedule,inhabitants,gains_internal[W]_per_person[W]
-1,1r1c,0.000403954,147361932.5,GeoMA,file,demand,0.05,True,4,65

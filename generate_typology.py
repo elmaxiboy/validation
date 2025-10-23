@@ -1,6 +1,9 @@
 import pandas as pd
 from teaser.project import Project
 import json
+from entise.constants import Types
+from entise.constants.columns import Columns
+from entise.constants.objects import Objects
 
 def generate_buildings():
 
@@ -27,6 +30,9 @@ def generate_buildings():
     number_of_apartments: Any | None = None """
 
     for idx,row in df.iterrows():
+        #No database entry found for construction=tabula_de_standard, year2016
+        if int(row["year"]==2016): 
+            continue
         prj.add_residential(
             construction_data='tabula_de_standard',
             geometry_data='tabula_de_single_family_house',
@@ -36,24 +42,15 @@ def generate_buildings():
             height_of_floors=2.7,
             net_leased_area=row["in.sqft"]*0.09290304,
             inner_wall_approximation_approach="teaser_default",#typical length * height of floors + 2 * typical width * height of floors
-            height_of_floors=2.7,
-            net_leased_area=row["in.sqft"]*0.09290304,
-            inner_wall_approximation_approach="teaser_default",#typical length * height of floors + 2 * typical width * height of floors
             )
 
 
     prj.calc_all_buildings()
-    prj.calc_all_buildings()
 
-    prj.save_project("results","results/")
-    prj.save_project("results","results/")
+    prj.save_project("results_2016","results/")
 
 
 def calculate_rc():
-
-    df= pd.read_csv("data/validation/single_family_detached_per_year.csv")
-    df["resistance[K W-1]"]=0
-    df["capacitance[J K-1]"]=0
 
     df= pd.read_csv("data/validation/single_family_detached_per_year.csv")
     df["resistance[K W-1]"]=0
@@ -112,11 +109,12 @@ def calculate_rc():
         return R_eff, C_eff
 
     for k,building in data["project"]["buildings"].items():
-        print(f"building : {k}")
-
-        #if k== "B498771_1918":
+        
         try:
             # Extract the thermal zone
+            if not int(building["year_of_construction"])==2016:
+                continue
+            print(f"building : {k}")
             tz = building["thermal_zones"]["SingleDwelling"]
             # Compute R and C for all building components
             R_outer, C_outer = elements_R_C(tz["outer_walls"])
@@ -151,7 +149,19 @@ def calculate_rc():
 
 def to_object_file():
     df=pd.read_csv("data/validation/single_family_detached_per_year_rc.csv")
-    df=df[["bldg_id","year","in.occupants","resistance[K W-1]","capacitance[J K-1]","in.heating_setpoint","in.cooling_setpoint","in.window_areas","filename","in.geometry_stories","in.weather_file_latitude","in.weather_file_longitude"]]
+    df=df[["bldg_id",
+           "year",
+           "in.occupants",
+           "resistance[K W-1]",
+           "capacitance[J K-1]",
+           "in.heating_setpoint",
+           "in.cooling_setpoint",
+           "in.window_areas",
+           "filename",
+           "in.geometry_stories",
+           "in.weather_file_latitude",
+           "in.weather_file_longitude",
+           "in.sqft"]]
     df.rename(
     columns={
         "in.occupants": "inhabitants",
@@ -161,6 +171,7 @@ def to_object_file():
         "in.weather_file_latitude": "latitude[degree]",
         "in.weather_file_longitude": "longitude[degree]",
         "in.window_areas": "windows_area",
+        "in.geometry_stories":"stories"
     },
     inplace=True
     )
@@ -175,8 +186,22 @@ def to_object_file():
     df.to_csv("data/validation/objects_rc.csv",index=False)
 
 #calculate_rc()
-to_object_file()
-
-
-
+#to_object_file()
 #generate_buildings()
+def add_stories_and_area():
+    df = pd.read_csv("results/hvac_summary_pht.csv")
+    df_to_join = pd.read_csv("data/validation/objects_validation.csv")
+
+    # Merge on both 'id' and 'year'
+    df_merged = df.merge(
+        df_to_join[['id', 'year', 'stories', 'area[m2]']],
+        how='left',
+        on=['id', 'year']
+    )
+
+    assert len(df_merged) == len(df), "Row count changed after merge!"
+
+    df_merged.to_csv("results/hvac_summary_pht_with_stories_and_area.csv", index=False)
+
+
+add_stories_and_area()
