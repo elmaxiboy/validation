@@ -1,8 +1,6 @@
 
 import logging
 import os
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 
 # Import the new TimeSeriesGenerator
@@ -70,15 +68,21 @@ def derive_occupancy_schedule():
         print("Summary occupancy:")
         print(summary)
 
-        df[Columns.OCCUPANCY_GEOMA][Types.OCCUPANCY].to_csv(f"data/validation/occupancy/{Columns.OCCUPANCY_GEOMA}/{obj_id}.csv")
-        df[Columns.OCCUPANCY_PHT][Types.OCCUPANCY].to_csv(f"data/validation/occupancy/{Columns.OCCUPANCY_PHT}/{obj_id}.csv")
+        df[Columns.OCCUPANCY_GEOMA][Types.OCCUPANCY].to_csv(f"data/validation/{Types.OCCUPANCY}/{Columns.OCCUPANCY_GEOMA}/{obj_id}.csv")
+        df[Columns.OCCUPANCY_PHT][Types.OCCUPANCY].to_csv(f"data/validation/{Types.OCCUPANCY}/{Columns.OCCUPANCY_PHT}/{obj_id}.csv")
 
         processed_ids.add(obj_id)
 
+
+def derive_ventilation():
+    pass
+
+def generate_windows():
+    pass
 def derive_internal_gains():
 
     objects = pd.read_csv(os.path.join(cwd, "objects_validation.csv"))
-    occupancy_folder="data/validation/occupancy"
+    occupancy_folder=f"data/validation/{Types.OCCUPANCY}"
     
     objects=objects.drop(columns=["year",Objects.RESISTANCE,Objects.CAPACITANCE])
     objects=objects.drop_duplicates()

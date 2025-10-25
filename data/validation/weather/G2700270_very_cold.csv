@@ -1,4 +1,4 @@
-timestamp,temp,humidity,wind_speed,wind_dir,ghi,dhi
+timestamp,air_temperature[C],humidity,wind_speed,wind_dir,ghi,dhi
 1514764800,247.05,71,3.85,255,0,0
 1514765700,246.77,72,3.54,256,0,0
 1514766600,246.5,73,3.22,258,0,0

@@ -1,29 +1,32 @@
+import numpy as np
 import pandas as pd
 import os
 
 
-def filter_by_geometry():
+def filter_single_family_detached():
 
     folder_path = "data/validation/zones"
-
-    column_to_filter = "in.geometry_building_type_recs"
-    values_to_keep = ["Single-Family Detached"]
-
-    filtered_dfs=[]
-
-    # Loop through all CSV files in the folder
+    # Define all filtering rules here:
+    filter_rules = {
+        "in.geometry_building_type_recs": ["Single-Family Detached"],
+        "in.heating_fuel": ["Electricity"],
+        "in.misc_pool": [np.nan],
+        "in.vacancy_status":["Occupied"]
+    }
+    filtered_dfs = []
     for filename in os.listdir(folder_path):
         if filename.endswith(".csv"):
             file_path = os.path.join(folder_path, filename)
             df = pd.read_csv(file_path)
-
-            filtered_df = df[df[column_to_filter].isin(values_to_keep)]
-
-            # Add a column with the file name
-            filtered_df["filename"] = filename
-
-            # Store in the list
-            filtered_dfs.append(filtered_df)
+            # Apply all filters in sequence
+            for column, values in filter_rules.items():
+                if column in df.columns:
+                    df = df[df[column].isin(values)]
+            # Add filename column (for traceability)
+            df["filename"] = filename
+            # Store only non-empty filtered data
+            if not df.empty:
+                filtered_dfs.append(df)
 
     # Concatenate all filtered DataFrames into one
     if filtered_dfs:  # check if list is not empty
@@ -94,7 +97,8 @@ def filter_by_geometry():
         "in.state",
         "in.weather_file_city",
         "in.weather_file_latitude",
-        "in.weather_file_longitude"
+        "in.weather_file_longitude",
+        "in.orientation"
     ]
 
     # Filter the dataset
@@ -137,12 +141,10 @@ def get_simulated_years():
 
 
     df.reset_index(drop=True,inplace=True)
-    df_with_years.to_csv("data/validation/single_family_detached_per_year.csv",index=False)    
+    df_with_years.to_csv("data/validation/single_family_detached.csv",index=False)    
 
     return df_with_years
     
-
-
 def copy_demand_files():
     path = "C:/Users/escobarm/Desktop/thesis/validation_data/counties"
     climate_zone_folders = os.listdir(path)
@@ -159,4 +161,6 @@ def copy_demand_files():
         demand_file=pd.read_csv(path+"/"+demand_path)
         demand_file.to_csv(save_path+"/"+str(bldg["id"])+".csv",index=False)
 
-copy_demand_files()
+
+filter_single_family_detached()
+get_simulated_years()

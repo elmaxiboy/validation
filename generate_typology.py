@@ -10,7 +10,7 @@ def generate_buildings():
     prj = Project()
     prj.name = "ThesisValidation"
 
-    df=pd.read_csv("data/validation/single_family_detached_per_year.csv")
+    df=pd.read_csv("data/validation/single_family_detached.csv")
 
     """ construction_data: Any,
     geometry_data: Any,
@@ -47,17 +47,17 @@ def generate_buildings():
 
     prj.calc_all_buildings()
 
-    prj.save_project("results_2016","results/")
+    prj.save_project("tipology","data/validation/tipology")
 
 
 def calculate_rc():
 
-    df= pd.read_csv("data/validation/single_family_detached_per_year.csv")
-    df["resistance[K W-1]"]=0
-    df["capacitance[J K-1]"]=0
+    df= pd.read_csv("data/validation/single_family_detached.csv")
+    df[Objects.RESISTANCE]=0
+    df[Objects.CAPACITANCE]=0
 
     # Load the TEASER JSON
-    with open("results/results.json") as f:
+    with open("data/validation/tipology/tipology.json") as f:
         data = json.load(f)
 
     # Helper function: compute R and C for a single layer
@@ -112,7 +112,7 @@ def calculate_rc():
         
         try:
             # Extract the thermal zone
-            if not int(building["year_of_construction"])==2016:
+            if int(building["year_of_construction"])==2016:
                 continue
             print(f"building : {k}")
             tz = building["thermal_zones"]["SingleDwelling"]
@@ -138,17 +138,93 @@ def calculate_rc():
                 (df["year"].astype(int) == year_value)
             )
 
-            df.loc[mask, "resistance[K W-1]"] = R_total
-            df.loc[mask, "capacitance[J K-1]"] = C_total
+            df.loc[mask, Objects.RESISTANCE] = R_total
+            df.loc[mask, Objects.CAPACITANCE] = C_total
             print("")
 
         except Exception as e:
             print("Error: "+str(e))
-    df.to_csv("data/validation/single_family_detached_per_year_rc.csv")    
+    df.to_csv("data/validation/single_family_detached.csv")    
+
+def generate_windows_tipology():
+    
+    def extract_values(windows):
+        windows_data = []
+        for win_name, win_info in windows.items():
+            layer = win_info.get("layer", {}).get("0", {})
+            material = layer.get("material", {})
+
+            # Compute transmittance (U-value) if thermal_conduc & thickness available
+            # U = k / thickness, in W/m²K
+            k = material.get("thermal_conduc", None)
+            thickness = layer.get("thickness", None)
+            transmittance = None
+            if k and thickness and thickness > 0:
+                transmittance = k / thickness  # [W/m²·K]
+
+            area= win_info.get("area")
+            tilt=win_info.get("tilt")
+            orientation=win_info.get("orientation")
+            shading=win_info.get("shading_g_total")*win_info.get("g_value")
+            values={
+                Objects.AREA:area,
+                Objects.TRANSMITTANCE:transmittance,
+                Objects.ORIENTATION:orientation,
+                Objects.TILT:tilt,
+                "shading[1]":shading
+            }
+            windows_data.append(values)
+        return windows_data
+
+    df_windows=pd.DataFrame(columns=[
+    Objects.ID,
+    "year",
+    Objects.AREA,
+    Objects.TRANSMITTANCE,
+    Objects.ORIENTATION,
+    Objects.TILT,
+    "shading[1]"
+    ])
+    
+    with open("data/validation/tipology/tipology.json") as f:
+        data = json.load(f)
+    for k,building in data["project"]["buildings"].items():
+
+        try:
+            
+            bldg_id_str = str(k).split("B")[1].split("_")[0]
+            year_value = int(building["year_of_construction"]) 
+
+            if int(building["year_of_construction"])==2016:
+                continue
+            print(f"building : {k}")
+            tz = building["thermal_zones"]["SingleDwelling"]
+            # Compute R and C for all building components
+            windows_data = extract_values(tz["windows"])
+            
+            mask = (
+                (df_windows[Objects.ID].astype(str) == bldg_id_str) &
+                (df_windows["year"].astype(int) == year_value)
+            )
+            for window in windows_data:
+                df_windows.loc[len(df_windows)] = {
+                    Objects.ID: bldg_id_str,
+                    "year": year_value,
+                    Objects.AREA: window[Objects.AREA],
+                    Objects.TRANSMITTANCE: window[Objects.TRANSMITTANCE],
+                    Objects.ORIENTATION: window[Objects.ORIENTATION],
+                    Objects.TILT: window[Objects.TILT],
+                    "shading[1]": window["shading[1]"]
+                }
+
+        except Exception as e:
+            print("Error: "+str(e))
+    
+    df_windows.to_csv("data/validation/tipology/windows.csv",index=False)
 
 
 def to_object_file():
-    df=pd.read_csv("data/validation/single_family_detached_per_year_rc.csv")
+    df=pd.read_csv("data/validation/single_family_detached.csv")
     df=df[["bldg_id",
            "year",
            "in.occupants",
@@ -161,7 +237,10 @@ def to_object_file():
            "in.geometry_stories",
            "in.weather_file_latitude",
            "in.weather_file_longitude",
-           "in.sqft"]]
+           "in.sqft",
+           "in.orientation",
+           "in.stories"]]
+    
     df.rename(
     columns={
         "in.occupants": "inhabitants",
@@ -171,7 +250,9 @@ def to_object_file():
         "in.weather_file_latitude": "latitude[degree]",
         "in.weather_file_longitude": "longitude[degree]",
         "in.window_areas": "windows_area",
-        "in.geometry_stories":"stories"
+        "in.geometry_stories":"stories",
+        "in.orientation":"orientation",
+        "in.stories":"stories"
     },
     inplace=True
     )
@@ -185,9 +266,8 @@ def to_object_file():
 
     df.to_csv("data/validation/objects_rc.csv",index=False)
 
-#calculate_rc()
-#to_object_file()
-#generate_buildings()
+
+
 def add_stories_and_area():
     df = pd.read_csv("results/hvac_summary_pht.csv")
     df_to_join = pd.read_csv("data/validation/objects_validation.csv")
@@ -203,5 +283,6 @@ def add_stories_and_area():
 
     df_merged.to_csv("results/hvac_summary_pht_with_stories_and_area.csv", index=False)
 
-
-add_stories_and_area()
+generate_buildings()
+calculate_rc()
+generate_windows_tipology()
