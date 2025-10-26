@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
-
+from entise.constants.objects import Objects
 
 def filter_single_family_detached():
 
@@ -98,7 +98,6 @@ def filter_single_family_detached():
         "in.weather_file_city",
         "in.weather_file_latitude",
         "in.weather_file_longitude",
-        "in.orientation"
     ]
 
     # Filter the dataset
@@ -162,5 +161,58 @@ def copy_demand_files():
         demand_file.to_csv(save_path+"/"+str(bldg["id"])+".csv",index=False)
 
 
-filter_single_family_detached()
-get_simulated_years()
+def to_object_file():
+    df=pd.read_csv("data/validation/single_family_detached.csv")
+    df=df[["bldg_id",
+           "year",
+           "in.occupants",
+           Objects.RESISTANCE,
+           Objects.CAPACITANCE,
+           "in.heating_setpoint",
+           "in.cooling_setpoint",
+           "in.window_areas",
+           "filename",
+           "in.geometry_stories",
+           "in.weather_file_latitude",
+           "in.weather_file_longitude",
+           "in.sqft",
+           "in.orientation",
+           "in.geometry_stories",
+           "in.state"]]
+    
+    df.rename(
+    columns={
+        "in.occupants":              Objects.INHABITANTS,
+        "bldg_id":                   Objects.ID,
+        "in.heating_setpoint":       Objects.TEMP_MIN,
+        "in.cooling_setpoint":       Objects.TEMP_MAX,
+        "in.weather_file_latitude":  Objects.LAT,
+        "in.weather_file_longitude": Objects.LON,
+        "in.geometry_stories":       "stories",
+        "in.orientation":            Objects.ORIENTATION,
+        "in.sqft":                   Objects.AREA,
+        "in.state":                  "state"
+
+    },
+    inplace=True
+    )
+
+    #Convert Units
+
+    df[Objects.TEMP_MIN] = pd.to_numeric(df[Objects.TEMP_MIN].astype(str).str.replace("F", "", regex=False), errors="coerce")
+    df[Objects.TEMP_MAX] = pd.to_numeric(df[Objects.TEMP_MAX].astype(str).str.replace("F", "", regex=False), errors="coerce")
+
+    df[Objects.TEMP_MIN] = ((df[Objects.TEMP_MIN] - 32) * 5 / 9).round(2)
+    df[Objects.TEMP_MAX] = ((df[Objects.TEMP_MAX] - 32) * 5 / 9).round(2)
+
+    df[Objects.AREA] = pd.to_numeric(df[Objects.AREA])*0.09290304
+
+    #Extract climate zone
+
+    df["climate_zone"]=df["filename"].str.replace(".csv", "", regex=False).str.split("_").str[1:].str.join(" ")
+
+    #Filter out year 2016, does not exist in teaser
+
+    df=df.loc[pd.to_numeric(df["year"])!=2016]
+
+    df.to_csv("data/validation/objects_entise.csv",index=False)

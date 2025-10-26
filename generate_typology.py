@@ -1,8 +1,6 @@
 import pandas as pd
 from teaser.project import Project
 import json
-from entise.constants import Types
-from entise.constants.columns import Columns
 from entise.constants.objects import Objects
 
 def generate_buildings():
@@ -202,10 +200,7 @@ def generate_windows_tipology():
             # Compute R and C for all building components
             windows_data = extract_values(tz["windows"])
             
-            mask = (
-                (df_windows[Objects.ID].astype(str) == bldg_id_str) &
-                (df_windows["year"].astype(int) == year_value)
-            )
+            
             for window in windows_data:
                 df_windows.loc[len(df_windows)] = {
                     Objects.ID: bldg_id_str,
@@ -222,67 +217,3 @@ def generate_windows_tipology():
     
     df_windows.to_csv("data/validation/tipology/windows.csv",index=False)
 
-
-def to_object_file():
-    df=pd.read_csv("data/validation/single_family_detached.csv")
-    df=df[["bldg_id",
-           "year",
-           "in.occupants",
-           "resistance[K W-1]",
-           "capacitance[J K-1]",
-           "in.heating_setpoint",
-           "in.cooling_setpoint",
-           "in.window_areas",
-           "filename",
-           "in.geometry_stories",
-           "in.weather_file_latitude",
-           "in.weather_file_longitude",
-           "in.sqft",
-           "in.orientation",
-           "in.stories"]]
-    
-    df.rename(
-    columns={
-        "in.occupants": "inhabitants",
-        "bldg_id": "id",
-        "in.heating_setpoint": "min_temperature[C]",
-        "in.cooling_setpoint": "max_temperature[C]",
-        "in.weather_file_latitude": "latitude[degree]",
-        "in.weather_file_longitude": "longitude[degree]",
-        "in.window_areas": "windows_area",
-        "in.geometry_stories":"stories",
-        "in.orientation":"orientation",
-        "in.stories":"stories"
-    },
-    inplace=True
-    )
-    df["min_temperature[C]"] = pd.to_numeric(df["min_temperature[C]"].astype(str).str.replace("F", "", regex=False), errors="coerce")
-    df["max_temperature[C]"] = pd.to_numeric(df["max_temperature[C]"].astype(str).str.replace("F", "", regex=False), errors="coerce")
-
-    df["min_temperature[C]"] = ((df["min_temperature[C]"] - 32) * 5 / 9).round(2)
-    df["max_temperature[C]"] = ((df["max_temperature[C]"] - 32) * 5 / 9).round(2)
-
-
-
-    df.to_csv("data/validation/objects_rc.csv",index=False)
-
-
-
-def add_stories_and_area():
-    df = pd.read_csv("results/hvac_summary_pht.csv")
-    df_to_join = pd.read_csv("data/validation/objects_validation.csv")
-
-    # Merge on both 'id' and 'year'
-    df_merged = df.merge(
-        df_to_join[['id', 'year', 'stories', 'area[m2]']],
-        how='left',
-        on=['id', 'year']
-    )
-
-    assert len(df_merged) == len(df), "Row count changed after merge!"
-
-    df_merged.to_csv("results/hvac_summary_pht_with_stories_and_area.csv", index=False)
-
-generate_buildings()
-calculate_rc()
-generate_windows_tipology()
