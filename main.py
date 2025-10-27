@@ -20,12 +20,13 @@ from entise.constants.columns import Columns
 #generate_windows_tipology()
 #
 #to_object_file()
-
+#
 #derive_occupancy_schedule()
-
+#
 #derive_internal_gains()
-
+#
 #derive_solar_gains()
+
 derive_hvac(Columns.OCCUPANCY_GEOMA)
 derive_hvac(Columns.OCCUPANCY_PHT)
 

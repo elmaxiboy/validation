@@ -205,6 +205,8 @@ def to_object_file():
     df[Objects.TEMP_MIN] = ((df[Objects.TEMP_MIN] - 32) * 5 / 9).round(2)
     df[Objects.TEMP_MAX] = ((df[Objects.TEMP_MAX] - 32) * 5 / 9).round(2)
 
+    df=df.loc[df[Objects.TEMP_MIN]<df[Objects.TEMP_MAX]]
+
     df[Objects.AREA] = pd.to_numeric(df[Objects.AREA])*0.09290304
 
     #Extract climate zone
@@ -214,5 +216,6 @@ def to_object_file():
     #Filter out year 2016, does not exist in teaser
 
     df=df.loc[pd.to_numeric(df["year"])!=2016]
+    
 
     df.to_csv("data/validation/objects_entise.csv",index=False)

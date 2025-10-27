@@ -268,31 +268,22 @@ def scatterplot_resistance_capacitance():
 #scatterplot_resistance_capacitance()
 
 def nrel_vs_entise():
-    df = pd.read_csv("data/validation/hvac/geoma/527912_1918.csv", parse_dates=["datetime"])
+    df = pd.read_csv("data/validation/hvac/geoma/24083_2009.csv", parse_dates=[Columns.DATETIME])
 
 
     fig, ax1 = plt.subplots(figsize=(12, 5))
-
-    # Plot indoor temperature on primary y-axis
-    ax1.plot(df["datetime"], df["indoor_temperature[C]"], color="tab:red", label="Indoor Temp [°C]")
-    ax1.set_xlabel("Datetime")
-    ax1.set_ylabel("Temperature [°C]", color="tab:red")
-    ax1.tick_params(axis="y", labelcolor="tab:red")
-
-    # Create secondary y-axis for heating and cooling loads
-    ax2 = ax1.twinx()
-    ax2.plot(df["datetime"], df["heating:load[W]"], color="tab:blue", label="Heating Load [W]")
-    ax2.plot(df["datetime"], df["cooling:load[W]"], color="tab:green", label="Cooling Load [W]")
-    ax2.set_ylabel("Load [W]", color="tab:blue")
-    ax2.tick_params(axis="y", labelcolor="tab:blue")
+    ax1.plot(df[Columns.DATETIME], df[f"{Types.COOLING}_{Columns.DEMAND}[W]"], color="tab:blue", label="Cooling Load [W]")
+    ax1.plot(df[Columns.DATETIME], df[f"{Types.HEATING}_{Columns.DEMAND}[W]"], color="tab:red", label="Heating Load [W]")
+    
+    ax1.set_ylabel("Load [W]", color="tab:blue")
+    ax1.tick_params(axis="y", labelcolor="tab:blue")
 
     # Combine legends
     lines, labels = ax1.get_legend_handles_labels()
-    lines2, labels2 = ax2.get_legend_handles_labels()
-    ax2.legend(lines + lines2, labels + labels2, loc="upper right")
+    ax1.legend(lines, labels , loc="upper right")
 
     # Improve layout
-    plt.title("Indoor Temperature and HVAC Loads Over Time")
+    plt.title("HVAC Loads Over Time")
     plt.xticks(rotation=45)
     plt.tight_layout()
 

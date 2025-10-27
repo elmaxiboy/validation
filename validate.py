@@ -20,11 +20,13 @@ solar_gains_folder="data/validation/solar_gains"
 demand_folder="data/validation/demand"
 occupancy_folder=f"data/validation/{Types.OCCUPANCY}"
 hvac_folder=f"data/validation/hvac"
-objects = pd.read_csv(os.path.join(cwd, "data/validation/objects_entise.csv"))
+
 
 
 #DERIVE OCCUPANCY SCHEDULE
 def derive_occupancy_schedule():
+
+    objects = pd.read_csv(os.path.join(cwd, "data/validation/objects_entise.csv"))
 
     df_summary=pd.DataFrame(columns=[Objects.ID,"method",f"average_{Types.OCCUPANCY}"])
     
@@ -95,6 +97,8 @@ def derive_occupancy_schedule():
 
 def derive_internal_gains():
 
+    objects = pd.read_csv(os.path.join(cwd, "data/validation/objects_entise.csv"))
+
     objects=objects.drop(columns=["year",Objects.RESISTANCE,Objects.CAPACITANCE])
     objects=objects.drop_duplicates()
 
@@ -124,6 +128,8 @@ def derive_internal_gains():
         df.to_csv(f"data/validation/internal_gains/{Columns.OCCUPANCY_PHT}/{obj_id}.csv")
 
 def derive_solar_gains():
+
+    objects = pd.read_csv(os.path.join(cwd, "data/validation/objects_entise.csv"))
     solar_gains_generator = SolarGainsPVLib()
     
     
@@ -172,8 +178,8 @@ def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
     objects[Objects.TEMP_INIT] = objects[[Objects.TEMP_MAX, Objects.TEMP_MIN]].mean(axis=1)
     objects[Objects.ACTIVE_COOLING] = True
     objects[Objects.ACTIVE_HEATING] = True
-    objects[Objects.POWER_COOLING]  = float("inf")
-    objects[Objects.POWER_HEATING]  = float("inf")   
+    objects[Objects.POWER_COOLING]  = 50000
+    objects[Objects.POWER_HEATING]  = 50000  
     
     df_summary=pd.DataFrame(columns=[
     Objects.ID,
@@ -245,19 +251,13 @@ def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
                 },
                     index=full_index
                 )
-            #REMOVE EXTREME VALUES
-            #q3_heating = df_hvac[f"{Types.HEATING}_{Columns.DEMAND}[W]"].quantile(0.75)
-            #outliers_heating = q3_heating + 2 * q3_heating
-            #q3_cooling = df_hvac[f"{Types.COOLING}_{Columns.DEMAND}[W]"].quantile(0.75)
-            #outliers_cooling = q3_cooling + 2 * q3_cooling
-#
-            #df_hvac.loc[(df_hvac[f"{Types.HEATING}_{Columns.DEMAND}[W]"] > outliers_heating), f"{Types.HEATING}_{Columns.DEMAND}[W]"] = 0.0
-            #df_hvac.loc[(df_hvac[f"{Types.COOLING}_{Columns.DEMAND}[W]"] > outliers_cooling), f"{Types.COOLING}_{Columns.DEMAND}[W]"] = 0.0
 
             df_hvac.reset_index(inplace=True)
             df_hvac.to_csv(f"{hvac_folder}/{method}/{obj_id}_{obj_year}.csv",index=False)
 
 def summarize_hvac(method:str=Columns.OCCUPANCY_GEOMA):
+
+    objects = pd.read_csv(os.path.join(cwd, "data/validation/objects_entise.csv"))
 
     df_summary=pd.DataFrame(columns=[
     Objects.ID,
