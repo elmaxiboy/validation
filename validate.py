@@ -178,8 +178,8 @@ def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
     objects[Objects.TEMP_INIT] = objects[[Objects.TEMP_MAX, Objects.TEMP_MIN]].mean(axis=1)
     objects[Objects.ACTIVE_COOLING] = True
     objects[Objects.ACTIVE_HEATING] = True
-    objects[Objects.POWER_COOLING]  = 50000
-    objects[Objects.POWER_HEATING]  = 50000  
+    objects[Objects.POWER_COOLING]  = numpy.inf
+    objects[Objects.POWER_HEATING]  = numpy.inf
     
     df_summary=pd.DataFrame(columns=[
     Objects.ID,
@@ -336,24 +336,37 @@ def get_windows(obj):
     df_windows = df_windows.loc[mask]   
     return df_windows
 
-def calculate_dni(df_weather,object):
+
+def calculate_dni(df_weather: pd.DataFrame, object):
+    # compute solar position (solpos index will be the same times we pass)
     solpos = pvlib.solarposition.get_solarposition(
-    time=df_weather[Columns.DATETIME],
-    latitude=object[Objects.LAT],
-    longitude=object[Objects.LON]
+        time=df_weather[Columns.DATETIME],
+        latitude=object[Objects.LAT],
+        longitude=object[Objects.LON]
     )
 
-    # Calculate DNI safely
-    cos_zenith = numpy.cos(numpy.radians(solpos['zenith'].to_numpy()))
-    dni = (df_weather[Columns.SOLAR_GHI].to_numpy() - df_weather[Columns.SOLAR_DHI].to_numpy()) / cos_zenith
+    df_weather[Columns.DATETIME] = pd.to_datetime(df_weather[Columns.DATETIME])
+    df_weather.set_index(Columns.DATETIME, inplace=True)
 
-    # Replace impossible values (e.g., sun below horizon)
-    dni[cos_zenith <= 0] = 0
-    dni[dni < 0] = 0
+    solpos = solpos.reindex(df_weather.index)
+    zenith=solpos["zenith"]
 
-    df_weather[Columns.SOLAR_DNI] = dni
+    dhi=df_weather[Columns.SOLAR_DHI]
+    ghi=df_weather[Columns.SOLAR_GHI]
+
+    dni = pvlib.irradiance.dni(ghi=ghi,dhi=dhi,zenith=zenith)
+
+    dni = dni.clip(lower=0).fillna(0.0)
+
+
+    df=pvlib.irradiance.erbs(ghi,zenith,df_weather.index)
+    
+    
+    df_weather[Columns.SOLAR_DNI]=df["dni"]
+    df_weather=df_weather.reset_index()
 
     return df_weather
+
 
 def set_datetime_index(df):
     df[Columns.DATETIME]=pd.to_datetime(df[Columns.DATETIME])

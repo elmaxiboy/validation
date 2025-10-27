@@ -268,12 +268,21 @@ def scatterplot_resistance_capacitance():
 #scatterplot_resistance_capacitance()
 
 def nrel_vs_entise():
-    df = pd.read_csv("data/validation/hvac/geoma/24083_2009.csv", parse_dates=[Columns.DATETIME])
+    id=24083
+    df_hvac = pd.read_csv(f"data/validation/hvac/geoma/{id}_2009.csv", parse_dates=[Columns.DATETIME])
+    df_internal_gains=pd.read_csv(f"data/validation/internal_gains/geoma/{id}.csv")
+    df_solar_gains=pd.read_csv(f"data/validation/solar_gains/{id}.csv")
+    df_solar_gains["datetime"]=pd.to_datetime(df_solar_gains["datetime"])
+
+
 
 
     fig, ax1 = plt.subplots(figsize=(12, 5))
-    ax1.plot(df[Columns.DATETIME], df[f"{Types.COOLING}_{Columns.DEMAND}[W]"], color="tab:blue", label="Cooling Load [W]")
-    ax1.plot(df[Columns.DATETIME], df[f"{Types.HEATING}_{Columns.DEMAND}[W]"], color="tab:red", label="Heating Load [W]")
+    
+    #ax1.plot(df_hvac[Columns.DATETIME], df_hvac[f"{Types.HEATING}_{Columns.DEMAND}[W]"], color="tab:red", label="Heating Load [W]")
+    #ax1.plot(df_hvac[Columns.DATETIME], df_hvac[f"{Types.HEATING}_{Columns.DEMAND}[W]"], color="tab:red", label="Heating Load [W]")
+    ax1.plot(df_solar_gains[Columns.DATETIME],df_solar_gains[Objects.GAINS_SOLAR], color="tab:orange", label="Solar Gains")
+    ax1.plot(df_hvac[Columns.DATETIME], df_hvac[f"{Types.COOLING}_{Columns.DEMAND}[W]"], color="tab:blue", label="Cooling Load")
     
     ax1.set_ylabel("Load [W]", color="tab:blue")
     ax1.tick_params(axis="y", labelcolor="tab:blue")
@@ -283,7 +292,7 @@ def nrel_vs_entise():
     ax1.legend(lines, labels , loc="upper right")
 
     # Improve layout
-    plt.title("HVAC Loads Over Time")
+    plt.title("Loads Over Time")
     plt.xticks(rotation=45)
     plt.tight_layout()
 

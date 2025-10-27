@@ -25,7 +25,7 @@ from entise.constants.columns import Columns
 #
 #derive_internal_gains()
 #
-#derive_solar_gains()
+derive_solar_gains()
 
 derive_hvac(Columns.OCCUPANCY_GEOMA)
 derive_hvac(Columns.OCCUPANCY_PHT)
