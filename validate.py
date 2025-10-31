@@ -20,6 +20,7 @@ solar_gains_folder="data/validation/solar_gains"
 demand_folder="data/validation/demand"
 occupancy_folder=f"data/validation/{Types.OCCUPANCY}"
 hvac_folder=f"data/validation/hvac"
+weather_folder="data/validation/weather"
 
 
 
@@ -128,17 +129,18 @@ def derive_internal_gains():
         df.to_csv(f"data/validation/internal_gains/{Columns.OCCUPANCY_PHT}/{obj_id}.csv")
 
 def derive_solar_gains():
-
+    print(f"Solar Gains")
     objects = pd.read_csv(os.path.join(cwd, "data/validation/objects_entise.csv"))
     solar_gains_generator = SolarGainsPVLib()
-    
     
     for idx,obj in objects.iterrows():
         data={}
         
+        print(f"Processing ID:{obj[Columns.ID]}, year:{obj["year"]}")
         df_weather=get_weather_timeseries(obj)
-        df_weather=calculate_dni(df_weather,obj)
+        df_weather=calculate_dhi(df_weather,obj)
         df_weather.set_index(Columns.DATETIME,inplace=True)
+        
         data[Objects.WEATHER]=df_weather
         
         df_windows=get_windows(obj)
@@ -146,8 +148,7 @@ def derive_solar_gains():
         
         df_solar_gains=solar_gains_generator.generate(obj=obj,data=data)
         df_solar_gains=df_solar_gains.reset_index()
-        df_solar_gains.to_csv(f"{solar_gains_folder}/{obj[Objects.ID]}.csv",index=False)
-
+        df_solar_gains.to_csv(f"{solar_gains_folder}/{obj[Objects.ID]}_{obj["year"]}.csv",index=False)
         
 
 def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
@@ -165,7 +166,8 @@ def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
                      Objects.TEMP_MAX,
                      Objects.FILE,
                      Objects.AREA,
-                     "stories"]]
+                     "stories",
+                     "climate_zone"]]
     
     objects[Types.HVAC]             =   "1r1c"
     objects[Objects.GAINS_INTERNAL] =   Objects.GAINS_INTERNAL
@@ -180,22 +182,6 @@ def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
     objects[Objects.ACTIVE_HEATING] = True
     objects[Objects.POWER_COOLING]  = numpy.inf
     objects[Objects.POWER_HEATING]  = numpy.inf
-    
-    df_summary=pd.DataFrame(columns=[
-    Objects.ID,
-    "year",
-    Objects.FILE,
-    Objects.INHABITANTS,
-    Objects.RESISTANCE,
-    Objects.CAPACITANCE,
-    Objects.AREA,
-    "stories",
-    "method",
-    f"{Types.HEATING}_{Columns.DEMAND}[Wh]",
-    f"{Types.HEATING}_{Columns.LOAD}_max[W]",
-    f"{Types.COOLING}_{Columns.DEMAND}[Wh]",
-    f"{Types.COOLING}_{Columns.LOAD}_max[W]",
-    ])
 
     full_index = pd.date_range(start="2018-01-01 00:00:00", end="2018-12-31 23:45:00", freq="15min",name=Columns.DATETIME)
 
@@ -204,12 +190,6 @@ def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
             data = {}
             obj_id =str(obj[Objects.ID])
             obj_year=obj["year"]
-            obj_stories=obj["stories"]
-            obj_area=obj[Objects.AREA]
-            obj_filename=obj[Objects.FILE]
-            obj_inhabitants=obj[Objects.INHABITANTS]
-            obj_resistance=obj[Objects.RESISTANCE]
-            obj_capacitance=obj[Objects.CAPACITANCE]
 
             print(f"Processing ID:{obj_id}, year:{obj_year}")
 
@@ -218,7 +198,7 @@ def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
             data[Objects.WEATHER]=df_weather
 
             #Add Solar Gains Data
-            df_solar_gains=pd.read_csv(f"{solar_gains_folder}/{obj_id}.csv")
+            df_solar_gains=pd.read_csv(f"{solar_gains_folder}/{obj_id}_{obj_year}.csv")
             df_solar_gains=set_datetime_index(df_solar_gains)
             data[Objects.GAINS_SOLAR]=df_solar_gains
 
@@ -227,9 +207,6 @@ def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
             df_internal_gains=set_datetime_index(df_internal_gains)
             data[Objects.GAINS_INTERNAL]=df_internal_gains
             
-            #Add Windows Data
-            df_windows=get_windows(obj)
-            data[Objects.WINDOWS]=df_windows
 
             #Add Ventilation
             df_ventilation=pd.read_csv(f"data/validation/tipology/ventilation.csv")
@@ -237,8 +214,9 @@ def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
                                                               utc=True,
                                                               errors="coerce").dt.tz_localize(None)
             df_ventilation = df_ventilation.set_index(Columns.DATETIME).reindex(full_index)
-            df_ventilation = df_ventilation.interpolate(method="time")
+            df_ventilation = df_ventilation.interpolate(method="linear")
             df_ventilation = df_ventilation[["typical"]]
+            
             data[Objects.VENTILATION]=df_ventilation
 
             # Generate HVAC time series
@@ -256,7 +234,7 @@ def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
             df_hvac.to_csv(f"{hvac_folder}/{method}/{obj_id}_{obj_year}.csv",index=False)
 
 def summarize_hvac(method:str=Columns.OCCUPANCY_GEOMA):
-
+    print(f"Summarize HVAC")
     objects = pd.read_csv(os.path.join(cwd, "data/validation/objects_entise.csv"))
 
     df_summary=pd.DataFrame(columns=[
@@ -273,17 +251,16 @@ def summarize_hvac(method:str=Columns.OCCUPANCY_GEOMA):
     f"{Types.HEATING}_{Columns.DEMAND}[kWh]",
     f"{Types.HEATING}_{Columns.LOAD}_max[kW]",
     f"{Types.COOLING}_{Columns.DEMAND}[kWh]",
-    f"{Types.COOLING}_{Columns.LOAD}_max[kW]",
-    f"KWh/{Objects.AREA}"
+    f"{Types.COOLING}_{Columns.LOAD}_max[kW]"
     ])
 
     for idx,obj in objects.iterrows():
         
+        print(f"Processing ID: {obj[Columns.ID]}, year:{obj["year"]}")
 
         obj_id =str(obj[Objects.ID])
         obj_year=obj["year"]
-
-        print(f"Processing ID:{obj_id}, year:{obj_year}")
+    
         
         obj_stories=obj["stories"]
         obj_state=obj["state"]
@@ -319,12 +296,8 @@ def summarize_hvac(method:str=Columns.OCCUPANCY_GEOMA):
 
 def get_weather_timeseries(obj):
     weather_folder="data/validation/weather"
-    df_weather=pd.read_csv(f"{weather_folder}/{obj["filename"]}")
-    df_weather["datetime"]=pd.to_datetime(df_weather["timestamp"], unit="s")
-    df_weather[Columns.SOLAR_GHI]=df_weather["ghi"]
-    df_weather[Columns.SOLAR_DHI]=df_weather["dhi"]
-    df_weather=df_weather[[Columns.DATETIME,Columns.TEMP_AIR,Columns.SOLAR_GHI,Columns.SOLAR_DHI]]
-    df_weather[Columns.TEMP_AIR]=pd.to_numeric(df_weather[Columns.TEMP_AIR])-273.15
+    df_weather=pd.read_csv(f"{weather_folder}/cleaned/{obj["climate_zone"]}.csv")
+    df_weather[Columns.DATETIME]=pd.to_datetime(df_weather[Columns.DATETIME])
     return df_weather
 
 def get_windows(obj):
@@ -337,35 +310,97 @@ def get_windows(obj):
     return df_windows
 
 
-def calculate_dni(df_weather: pd.DataFrame, object):
-    # compute solar position (solpos index will be the same times we pass)
+def calculate_dni(df_weather: pd.DataFrame, object,method):
+
+    solpos = pvlib.solarposition.get_solarposition(
+        time=df_weather[Columns.DATETIME],
+        latitude=object[Objects.LAT],
+        longitude=object[Objects.LON]
+    )
+    #solpos = solpos.reindex(df_weather.index)
+    zenith=solpos["zenith"]
+
+    location=pvlib.location.Location(latitude=object[Objects.LAT],longitude=object[Objects.LON])
+
+    df_weather[Columns.DATETIME] = pd.to_datetime(df_weather[Columns.DATETIME])
+    df_weather.set_index(Columns.DATETIME, inplace=True)
+
+    df_clearsky=location.get_clearsky(times=df_weather.index)
+
+    df_clearsky = df_clearsky.reindex(df_weather.index)
+    dni_clear = df_clearsky["dni"]
+
+    dhi=df_weather[Columns.SOLAR_DHI]
+    ghi=df_weather[Columns.SOLAR_GHI]
+    
+    match method:
+        case "zeros":        
+            df_weather[Columns.SOLAR_DNI]=0.0
+        
+        case "pvlib":
+            ghi=ghi.align(dhi, join="inner")[0]
+            dhi=dhi.align(ghi, join="inner")[0]
+            zenith=zenith.align(ghi, join="inner")[0]
+            dni_clear=dni_clear.reindex_like(ghi)
+            dni = pvlib.irradiance.dni(
+                ghi=ghi,
+                dhi=dhi,
+                zenith=zenith,
+                dni_clear=dni_clear,
+                clearsky_tolerance=1.1
+            )
+            dni = dni.clip(lower=0).fillna(0.0)
+            df_weather[Columns.SOLAR_DNI]=dni
+
+        case "erbs":
+            df=pvlib.irradiance.erbs(ghi,zenith,df_weather.index)
+            df_weather[Columns.SOLAR_DNI]=df["dni"]
+
+        case "clear_sky":
+            df_weather[Columns.SOLAR_DNI]=dni_clear
+
+    df_weather=df_weather.reset_index()
+
+    return df_weather
+
+def calculate_dhi(df_weather: pd.DataFrame, object):
+
     solpos = pvlib.solarposition.get_solarposition(
         time=df_weather[Columns.DATETIME],
         latitude=object[Objects.LAT],
         longitude=object[Objects.LON]
     )
 
+    zenith=solpos["zenith"]
+    zenith=zenith.clip(upper=90)
+    
+    location=pvlib.location.Location(latitude=object[Objects.LAT],longitude=object[Objects.LON])
+
     df_weather[Columns.DATETIME] = pd.to_datetime(df_weather[Columns.DATETIME])
     df_weather.set_index(Columns.DATETIME, inplace=True)
 
-    solpos = solpos.reindex(df_weather.index)
-    zenith=solpos["zenith"]
+    df_clearsky=location.get_clearsky(times=df_weather.index)
 
-    dhi=df_weather[Columns.SOLAR_DHI]
+    df_clearsky = df_clearsky.reindex(df_weather.index)
+    dni=df_weather[Columns.SOLAR_DNI]
     ghi=df_weather[Columns.SOLAR_GHI]
 
-    dni = pvlib.irradiance.dni(ghi=ghi,dhi=dhi,zenith=zenith)
+    ghi_fraction=numpy.cos(numpy.radians(zenith))
 
-    dni = dni.clip(lower=0).fillna(0.0)
+    dhi = ghi - dni*ghi_fraction
 
-
-    df=pvlib.irradiance.erbs(ghi,zenith,df_weather.index)
+    dhi = dhi.clip(lower=0).fillna(0.0)
     
+    df_weather[Columns.SOLAR_DHI]=dhi
+    df_weather["zenith[°]"]=zenith
     
-    df_weather[Columns.SOLAR_DNI]=df["dni"]
     df_weather=df_weather.reset_index()
+    
+    df_weather.to_csv(f"{weather_folder}/cleaned/{object["climate_zone"]}.csv",index=False)
+    
 
     return df_weather
+
 
 
 def set_datetime_index(df):

@@ -1,7 +1,8 @@
+import os
 from matplotlib import pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
-import plotly.express as px
 from entise.constants import Types
 from entise.constants.columns import Columns
 from entise.constants.objects import Objects
@@ -267,36 +268,152 @@ def scatterplot_resistance_capacitance():
 
 #scatterplot_resistance_capacitance()
 
-def nrel_vs_entise():
-    id=24083
-    df_hvac = pd.read_csv(f"data/validation/hvac/geoma/{id}_2009.csv", parse_dates=[Columns.DATETIME])
-    df_internal_gains=pd.read_csv(f"data/validation/internal_gains/geoma/{id}.csv")
-    df_solar_gains=pd.read_csv(f"data/validation/solar_gains/{id}.csv")
-    df_solar_gains["datetime"]=pd.to_datetime(df_solar_gains["datetime"])
+def plot_hvac_loads(method):
+    print(f"Plotting HVAC timeseries {method}")
+    objects = pd.read_csv(os.path.join(".", "data/validation/objects_entise.csv"))
+
+    for idx,obj in objects.iterrows():
+        
+        id   =obj[Objects.ID]
+        year =obj["year"]
+
+        print(f"Processing ID:{id}, year:{year}")
+
+        climate_zone=objects.loc[objects[Objects.ID]==id,"climate_zone"].iloc[0]
+        df_hvac = pd.read_csv(f"data/validation/hvac/{method}/{id}_{year}.csv", parse_dates=[Columns.DATETIME])
+        df_internal_gains=pd.read_csv(f"data/validation/internal_gains/{method}/{id}.csv")
+        df_solar_gains=pd.read_csv(f"data/validation/solar_gains/{id}.csv")
+        df_weather=pd.read_csv(f"data/validation/weather/cleaned/{climate_zone}.csv")
+        df_weather[Columns.DATETIME] = pd.to_datetime(df_weather[Columns.DATETIME])
+        df_solar_gains["datetime"]=pd.to_datetime(df_solar_gains["datetime"])
+
+        fig, ax1 = plt.subplots(figsize=(12, 5))
+        ax2=ax1.twinx()
+
+        ax2.plot(df_weather[Columns.DATETIME], df_weather[f"{Columns.TEMP_AIR}"], color="tab:olive", label="Outter Temperature")
+        ax2.plot(df_hvac[Columns.DATETIME], df_hvac[f"{Columns.TEMP_IN}"], color="tab:cyan", label="Inner Temperature")
+
+        ax1.plot(df_solar_gains[Columns.DATETIME],df_solar_gains[Objects.GAINS_SOLAR]/1000, color="tab:orange", label="Solar Gains")
+        ax1.plot(df_hvac[Columns.DATETIME], df_hvac[f"{Types.HEATING}_{Columns.DEMAND}[W]"]/1000, color="tab:red", label="Heating Load")
+        ax1.plot(df_hvac[Columns.DATETIME], df_hvac[f"{Types.COOLING}_{Columns.DEMAND}[W]"]/1000, color="tab:blue", label="Cooling Load")
 
 
+        ax1.set_ylabel("Load [kW]")
+        ax2.set_ylabel("Temperature [°C]")
 
 
-    fig, ax1 = plt.subplots(figsize=(12, 5))
+        # Combine legends
+        lines, labels = ax1.get_legend_handles_labels()
+        lines_2, labels_2 = ax2.get_legend_handles_labels()
+
+        ax1.legend(lines, labels , loc="upper left")
+        ax2.legend(lines_2, labels_2 , loc="upper right")
+
+
+        # Improve layout
+        plt.title(f"Loads Over Time, climate zone:{climate_zone}")
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        # Save figure
+        plt.savefig(f"results/images/timeseries/{method}/hvac_loads_solar_gains_{id}_{year}.png", dpi=300)
+
+def plot_box_plot_demand_by_area(method):
+
+    df = pd.read_csv("results/hvac_summary_geoma.csv")
+
+    climate_order = ["very cold", "cold", "marine", "mixed dry","hot humid","hot dry",]
+    df["climate_zone"] = pd.Categorical(df["climate_zone"], categories=climate_order, ordered=True)
+
+    df["year"] = pd.to_numeric(df["year"], errors="coerce")
+    year_order = sorted(df["year"].dropna().unique())
+
+    df_melted = df.melt(
+        id_vars=["climate_zone","year"],
+        value_vars=[
+            f"{Types.HEATING}_{Columns.DEMAND}[kWh]/{Objects.AREA}",
+            f"{Types.COOLING}_{Columns.DEMAND}[kWh]/{Objects.AREA}"
+        ],
+        var_name="hvac_type",
+        value_name="demand_per_m2"
+    )
+
+    palette = {
+        "Heating": "#d73027",   
+        "Cooling": "#4575b4"    
+    }
+
+    df_melted["hvac_type"] = df_melted["hvac_type"].str.replace("_demand\\[kWh\\]/area\\[m2\\]", "", regex=True)
+    df_melted["hvac_type"] = df_melted["hvac_type"].str.capitalize()
     
-    #ax1.plot(df_hvac[Columns.DATETIME], df_hvac[f"{Types.HEATING}_{Columns.DEMAND}[W]"], color="tab:red", label="Heating Load [W]")
-    #ax1.plot(df_hvac[Columns.DATETIME], df_hvac[f"{Types.HEATING}_{Columns.DEMAND}[W]"], color="tab:red", label="Heating Load [W]")
-    ax1.plot(df_solar_gains[Columns.DATETIME],df_solar_gains[Objects.GAINS_SOLAR], color="tab:orange", label="Solar Gains")
-    ax1.plot(df_hvac[Columns.DATETIME], df_hvac[f"{Types.COOLING}_{Columns.DEMAND}[W]"], color="tab:blue", label="Cooling Load")
+    # HVAC together
+    sns.set_theme(style="whitegrid", font_scale=1.2)
+    g = sns.catplot(
+        data=df_melted,
+        x="hvac_type",
+        y="demand_per_m2",
+        col="climate_zone",
+        row="year",
+        row_order=year_order,
+        kind="box",
+        sharey=True,   # or True, depending on comparability
+        height=4,
+        aspect=0.8,
+        palette=palette
+    )
     
-    ax1.set_ylabel("Load [W]", color="tab:blue")
-    ax1.tick_params(axis="y", labelcolor="tab:blue")
-
-    # Combine legends
-    lines, labels = ax1.get_legend_handles_labels()
-    ax1.legend(lines, labels , loc="upper right")
-
-    # Improve layout
-    plt.title("Loads Over Time")
-    plt.xticks(rotation=45)
+    g.set_titles(row_template="Year: {row_name}", col_template="Climate: {col_name}")
+    g.set_axis_labels("", "Demand [kWh/m²]")
+    g.figure.subplots_adjust(left=0.1, right=0.95, top=0.9, bottom=0.05)
+    g.figure.text(0.02, 0.5, "Year", va="center", rotation="vertical", fontsize=13)
     plt.tight_layout()
+    plt.savefig(f"results/images/boxplots/{method}/boxplot_hvac_by_climate_zone", dpi=300)
 
-    # Save figure
-    plt.savefig("timeseries_temperature_loads.png", dpi=300)
+    #Heating alone
+    g = sns.catplot(
+        data=df,
+        x="climate_zone",
+        y=f"{Types.HEATING}_{Columns.DEMAND}[kWh]/{Objects.AREA}",
+        row="year",                     
+        kind="box",
+        row_order=year_order,           
+        sharey=False,                  
+        palette="Reds",
+        height=4,
+        aspect=1.2
+    )
 
-nrel_vs_entise()
+    g.set_titles(row_template="Year: {row_name}")
+    g.set_axis_labels("Climate zone", "Heating demand [kWh/m²]")
+    g.set_xticklabels(rotation=30)
+
+
+    plt.tight_layout()    
+
+    plt.savefig(f"results/images/boxplots/{method}/boxplot_heating_by_climate_zone", dpi=300)
+
+    #Cooling alone
+
+    g = sns.catplot(
+        data=df,
+        x="climate_zone",
+        y=f"{Types.COOLING}_{Columns.DEMAND}[kWh]/{Objects.AREA}",
+        row="year",                     
+        kind="box",
+        row_order=year_order,           
+        sharey=False,                  
+        palette="Blues",
+        height=4,
+        aspect=1.2
+    )
+
+    g.set_titles(row_template="Year: {row_name}")
+    g.set_axis_labels("Climate zone", "Cooling demand [kWh/m²]")
+    g.set_xticklabels(rotation=30)
+    
+    plt.tight_layout() 
+
+    plt.savefig(f"results/images/boxplots/{method}/boxplot_cooling_by_climate_zone", dpi=300)
+    
+
+#plot_box_plot_demand_by_area(Columns.OCCUPANCY_GEOMA)
