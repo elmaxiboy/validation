@@ -270,7 +270,7 @@ def scatterplot_resistance_capacitance():
 
 def plot_hvac_loads(method):
     print(f"Plotting HVAC timeseries {method}")
-    objects = pd.read_csv(os.path.join(".", "data/validation/objects_entise.csv"))
+    objects = pd.read_csv(os.path.join(".", f"results/fit_score_{method}.csv")).head(10)
 
     for idx,obj in objects.iterrows():
         
@@ -282,7 +282,7 @@ def plot_hvac_loads(method):
         climate_zone=objects.loc[objects[Objects.ID]==id,"climate_zone"].iloc[0]
         df_hvac = pd.read_csv(f"data/validation/hvac/{method}/{id}_{year}.csv", parse_dates=[Columns.DATETIME])
         df_internal_gains=pd.read_csv(f"data/validation/internal_gains/{method}/{id}.csv")
-        df_solar_gains=pd.read_csv(f"data/validation/solar_gains/{id}.csv")
+        df_solar_gains=pd.read_csv(f"data/validation/solar_gains/{id}_{year}.csv")
         df_weather=pd.read_csv(f"data/validation/weather/cleaned/{climate_zone}.csv")
         df_weather[Columns.DATETIME] = pd.to_datetime(df_weather[Columns.DATETIME])
         df_solar_gains["datetime"]=pd.to_datetime(df_solar_gains["datetime"])
@@ -331,8 +331,8 @@ def plot_box_plot_demand_by_area(method):
     df_melted = df.melt(
         id_vars=["climate_zone","year"],
         value_vars=[
-            f"{Types.HEATING}_{Columns.DEMAND}[kWh]/{Objects.AREA}",
-            f"{Types.COOLING}_{Columns.DEMAND}[kWh]/{Objects.AREA}"
+            f"{Types.HEATING}_{Columns.DEMAND}_real[kWh]/{Objects.AREA}",
+            f"{Types.COOLING}_{Columns.DEMAND}_real[kWh]/{Objects.AREA}"
         ],
         var_name="hvac_type",
         value_name="demand_per_m2"
@@ -343,7 +343,7 @@ def plot_box_plot_demand_by_area(method):
         "Cooling": "#4575b4"    
     }
 
-    df_melted["hvac_type"] = df_melted["hvac_type"].str.replace("_demand\\[kWh\\]/area\\[m2\\]", "", regex=True)
+    df_melted["hvac_type"] = df_melted["hvac_type"].str.replace("_demand_real\\[kWh\\]/area\\[m2\\]", "", regex=True)
     df_melted["hvac_type"] = df_melted["hvac_type"].str.capitalize()
     
     # HVAC together
@@ -373,7 +373,7 @@ def plot_box_plot_demand_by_area(method):
     g = sns.catplot(
         data=df,
         x="climate_zone",
-        y=f"{Types.HEATING}_{Columns.DEMAND}[kWh]/{Objects.AREA}",
+        y=f"{Types.HEATING}_{Columns.DEMAND}_real[kWh]/{Objects.AREA}",
         row="year",                     
         kind="box",
         row_order=year_order,           
@@ -397,7 +397,7 @@ def plot_box_plot_demand_by_area(method):
     g = sns.catplot(
         data=df,
         x="climate_zone",
-        y=f"{Types.COOLING}_{Columns.DEMAND}[kWh]/{Objects.AREA}",
+        y=f"{Types.COOLING}_{Columns.DEMAND}_real[kWh]/{Objects.AREA}",
         row="year",                     
         kind="box",
         row_order=year_order,           
@@ -417,3 +417,379 @@ def plot_box_plot_demand_by_area(method):
     
 
 #plot_box_plot_demand_by_area(Columns.OCCUPANCY_GEOMA)
+
+def scatter_plot_demand_real_vs_simulated(method):
+    df = pd.read_csv(f"results/hvac_summary_{method}.csv")
+
+
+    climate_order = ["very cold", "cold", "marine", "mixed dry","hot dry","hot humid"]
+    years=[2002,2009]
+
+    # Convert to categorical with order
+    df["climate_zone"] = pd.Categorical(df["climate_zone"], categories=climate_order, ordered=True)
+    
+    for cz in climate_order:
+
+        df_cz=df.loc[(df["climate_zone"]==cz)]
+        
+        df_cz=df_cz[["id",
+                    "year",
+                    "climate_zone",
+                    "heating_demand_real[kWh]/area[m2]",
+                    "heating_demand_simulated[kWh]/area[m2]",
+                    "cooling_demand_real[kWh]/area[m2]",
+                    "cooling_demand_simulated[kWh]/area[m2]",
+                    ]]
+        
+        df_melted = df_cz.melt(
+        id_vars=["id", "year", "climate_zone"],
+        value_vars=[
+            "heating_demand_real[kWh]/area[m2]",
+            "heating_demand_simulated[kWh]/area[m2]",
+            "cooling_demand_real[kWh]/area[m2]",
+            "cooling_demand_simulated[kWh]/area[m2]",
+        ],
+        var_name="variable",
+        value_name="demand[kWh]/area[m2]"
+        )
+
+        # Extract type (heating/cooling) and source (real/simulated)
+        df_melted["type"] = df_melted["variable"].apply(lambda x: "heating" if "heating" in x else "cooling")
+        df_melted["source"] = df_melted["variable"].apply(lambda x: "real" if "real" in x else "simulated")
+        
+        df_pivot = df_melted.pivot_table(
+            index=["id", "year", "climate_zone", "type"],
+            columns="source",
+            values="demand[kWh]/area[m2]"
+            ).reset_index()
+
+        df_pivot.columns.name = None
+        df_pivot = df_pivot.rename(columns={"real": "real_demand", "simulated": "simulated_demand"})
+        
+        palette = {
+        "heating": "#d73027",   
+        "cooling": "#4575b4"    
+        }
+
+        g = sns.FacetGrid(df_pivot,
+                    col="year",
+                    hue="type",
+                    palette=palette)
+
+        g.map(sns.scatterplot,"real_demand","simulated_demand")
+
+        for ax in g.axes.flatten():
+            lims = [
+                min(ax.get_xlim()[0], ax.get_ylim()[0]),
+                max(ax.get_xlim()[1], ax.get_ylim()[1])
+            ]
+            ax.plot(lims, lims, "--", color="gray", linewidth=1)
+            ax.set_xlim(lims)
+            ax.set_ylim(lims)
+
+        g.add_legend()
+        g.set_axis_labels("Real [kWh/m²]", "Simulated [kWh/m²]")
+        
+        g.savefig(f"results/images/scatterplots/{method}/demand_comparison_{cz}.png")
+
+
+
+def scatter_plot_max_load_real_vs_simulated(method):
+    df = pd.read_csv(f"results/hvac_summary_{method}.csv")
+
+
+    climate_order = ["very cold", "cold", "marine", "mixed dry","hot dry","hot humid"]
+    years=[2002,2009]
+
+    # Convert to categorical with order
+    df["climate_zone"] = pd.Categorical(df["climate_zone"], categories=climate_order, ordered=True)
+    
+    for cz in climate_order:
+
+        df_cz=df.loc[(df["climate_zone"]==cz)]
+        
+        df_cz=df_cz[["id",
+                    "year",
+                    "climate_zone",
+                    "heating_load_real_max[kW]",
+                    "heating_load_simulated_max[kW]",
+                    "cooling_load_real_max[kW]",
+                    "cooling_load_simulated_max[kW]",
+                    ]]
+        
+        df_melted = df_cz.melt(
+        id_vars=["id", "year", "climate_zone"],
+        value_vars=[
+            "heating_load_real_max[kW]",
+            "heating_load_simulated_max[kW]",
+            "cooling_load_real_max[kW]",
+            "cooling_load_simulated_max[kW]",
+        ],
+        var_name="variable",
+        value_name="max_load[kW]"
+        )
+
+        # Extract type (heating/cooling) and source (real/simulated)
+        df_melted["type"] = df_melted["variable"].apply(lambda x: "heating" if "heating" in x else "cooling")
+        df_melted["source"] = df_melted["variable"].apply(lambda x: "real" if "real" in x else "simulated")
+        
+        df_pivot = df_melted.pivot_table(
+            index=["id", "year", "climate_zone", "type"],
+            columns="source",
+            values="max_load[kW]"
+            ).reset_index()
+
+        df_pivot.columns.name = None
+        df_pivot = df_pivot.rename(columns={"real": "real_max_load", "simulated": "simulated_max_load"})
+        
+        palette = {
+        "heating": "#d73027",   
+        "cooling": "#4575b4"    
+        }
+
+        g = sns.FacetGrid(df_pivot,
+                    col="year",
+                    hue="type",
+                    palette=palette)
+
+        g.map(sns.scatterplot,"real_max_load","simulated_max_load")
+
+        for ax in g.axes.flatten():
+            lims = [
+                min(ax.get_xlim()[0], ax.get_ylim()[0]),
+                max(ax.get_xlim()[1], ax.get_ylim()[1])
+            ]
+            ax.plot(lims, lims, "--", color="gray", linewidth=1)
+            ax.set_xlim(lims)
+            ax.set_ylim(lims)
+
+        g.add_legend()
+        g.set_axis_labels("Real Max. Load [kW]", "Simulated Max. Load [kW]")
+        
+        g.savefig(f"results/images/scatterplots/{method}/max_load_comparison_{cz}.png")
+
+
+def barplot_ranking_fit_score(method):
+
+
+    climate_order = ["very cold", "cold", "marine", "mixed dry", "hot dry", "hot humid"]
+    rel_error_cols = [
+        "heating_demand_rel_error",
+        "heating_load_rel_error",
+        "cooling_demand_rel_error",
+        "cooling_load_rel_error",
+    ]
+
+    ################## OVERALL PERFOMANCE ###########################
+    df = pd.read_csv(f"results/fit_score_{method}.csv")
+    df["climate_zone"] = pd.Categorical(df["climate_zone"], categories=climate_order, ordered=True)
+
+    df["fit_score_log"] = np.log(df["fit_score"])
+
+    plt.figure(figsize=(8, 5))
+    g = sns.barplot(
+        data=df,
+        x="climate_zone",
+        y="fit_score_log",
+        hue="year",
+        order=climate_order)
+    
+    g.set_xlabel("Climate Zone")
+    g.set_ylabel("log(Fit Score)")
+    g.set_title(f"Model Fit Score by Climate Zone — {method}")
+    plt.legend(title="Year")
+    plt.tight_layout()
+    plt.savefig(f"results/images/barplots/fit_score_{method}.png", dpi=300)
+    plt.close()
+
+################## PER ERROR COMPONENT ###########################
+
+    df = df.loc[df["year"].isin([2002, 2009])]
+
+    # Melt the relative error columns
+    rel_error_cols = [
+        "heating_demand_rel_error",
+        "heating_load_rel_error",
+        "cooling_demand_rel_error",
+        "cooling_load_rel_error"
+    ]
+
+    df_melted = df.melt(
+        id_vars=["climate_zone"],
+        value_vars=rel_error_cols,
+        var_name="metric",
+        value_name="relative_error"
+    )
+
+    # Apply log transform (absolute values)
+    df_melted["relative_error_log"] = np.log(df_melted["relative_error"].abs() + 1e-6)
+
+    # Clean up metric labels
+    df_melted["metric"] = (
+        df_melted["metric"]
+        .str.replace("_rel_error", "", regex=False)
+        .str.replace("load", "max. load [kW]", regex=False)
+        .str.replace("demand", "demand [kWh]", regex=False)
+        .str.replace("_", " ")
+    )
+
+    # Add a column for metric type
+    df_melted["type"] = df_melted["metric"].apply(lambda x: "heating" if "heating" in x.lower() else "cooling")
+
+    # Combine type and year for hue
+    df_melted["hue"] = df_melted["type"]
+
+    # Define a custom palette
+    palette = {
+        "heating": "#E74C3C",   # dark red
+        "cooling": "#3498DB",   # dark blue
+    }
+
+    # Create the FacetGrid
+    g = sns.FacetGrid(
+        df_melted,
+        col="climate_zone",
+        row_order=climate_order,
+        sharex=True,
+        height=2.2,
+        aspect=2,
+        despine=False,
+    )
+
+    # Plot bars using the new hue
+    g.map_dataframe(
+        sns.boxplot,
+        y="metric",
+        x="relative_error_log",
+        hue="hue",
+        orient="h",
+        palette=palette,
+        showfliers=False,
+    )
+    for ax in g.axes.flat:
+        ax.axvline(0, color="black", linestyle="--", linewidth=1)
+
+    g.set_titles(row_template="{row_name}")
+    g.set_axis_labels("log(Relative Error)", "")
+    g.add_legend(title="HVAC Type")
+    plt.savefig(f"results/images/barplots/relative_error_{method}_2000s.png", dpi=300)
+    plt.close()
+
+    ################## ONLY HEATING DEMAND ###########################
+
+    #df["fit_score_log"] = np.log(df["fit_score"])
+
+
+    plt.figure(figsize=(8, 5))
+    g = sns.boxplot(
+        data=df,
+        x="climate_zone",
+        y="heating_demand_rel_error",
+        order=climate_order,
+        showfliers=False,
+        palette="Reds"
+        )
+    
+    g.set_xlabel("Climate Zone")
+    g.set_ylabel("Relative Error of Heating Demand (%)")
+    g.set_title(f"Relative Error of Heating Demand for 2000s Buildings — {method}")
+    plt.tight_layout()
+    plt.savefig(f"results/images/barplots/rel_error_heating_{method}.png", dpi=300)
+    plt.close()
+
+def hvac_loads_comparison(climate_zone:str="marine",method= Columns.OCCUPANCY_GEOMA):
+    print(f"Plotting HVAC timeseries {method}")
+    objects = pd.read_csv(os.path.join(".", f"results/fit_score_{method}.csv"))
+
+    objects=objects.loc[(objects["climate_zone"]==climate_zone)&(objects["year"].isin([2009,2002]))]
+
+    for idx,obj in objects.iterrows():
+        
+        id   =obj[Objects.ID]
+        year =obj["year"]
+
+        print(f"Processing ID:{id}, year:{year}")
+
+        climate_zone=objects.loc[objects[Objects.ID]==id,"climate_zone"].iloc[0]
+        df_hvac_real= pd.read_csv(f"data/validation/demand/{id}.csv", parse_dates=[Columns.DATETIME])
+        upper_clip=df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"].quantile(0.999)
+        df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"]=df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"].clip(upper=upper_clip)
+
+        df_hvac_sim = pd.read_csv(f"data/validation/hvac/{method}/{id}_{year}.csv", parse_dates=[Columns.DATETIME])
+        df_solar_gains=pd.read_csv(f"data/validation/solar_gains/{id}_{year}.csv")
+        df_weather=pd.read_csv(f"data/validation/weather/cleaned/{climate_zone}.csv")
+        df_weather[Columns.DATETIME] = pd.to_datetime(df_weather[Columns.DATETIME])
+        df_solar_gains["datetime"]=pd.to_datetime(df_solar_gains["datetime"])
+
+        fig, ax1 = plt.subplots(figsize=(12, 5))
+
+
+        ax1.plot(df_solar_gains[Columns.DATETIME],df_solar_gains[Objects.GAINS_SOLAR]/1000, color="tab:orange", label="Solar Gains",alpha=0.5)
+        ax1.plot(df_hvac_real[Columns.DATETIME], df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"]/1000, color="darkred", label="Real Heating Load")
+        ax1.plot(df_hvac_real[Columns.DATETIME], df_hvac_real[f"{Types.COOLING}_{Columns.DEMAND}[W]"]/1000, color="royalblue", label="Real Cooling Load")
+        ax1.plot(df_hvac_sim[Columns.DATETIME], df_hvac_sim[f"{Types.HEATING}_{Columns.DEMAND}[W]"]/1000, color="red", label="Simulated Heating Load",alpha=0.8)
+        ax1.plot(df_hvac_sim[Columns.DATETIME], df_hvac_sim[f"{Types.COOLING}_{Columns.DEMAND}[W]"]/1000, color="deepskyblue", label="Simulated Cooling Load",alpha=0.8)
+        #ax1.plot(df_hvac_real[Columns.DATETIME], df_hvac_real[f"total_{Columns.POWER}"]/1000, color="black", label="Real total Load",alpha=0.8)
+
+
+
+        ax1.set_ylabel("Load [kW]")
+
+        # Combine legends
+        lines, labels = ax1.get_legend_handles_labels()
+
+        ax1.legend(lines, labels , loc="upper left")
+
+        # Improve layout
+        plt.title(f"Cooling loads comparison Over Time, climate zone:{climate_zone}")
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        # Save figure
+        plt.savefig(f"results/images/timeseries/{method}/{climate_zone}/{id}_{year}_hvac_comparison.png", dpi=300)
+
+def hvac_load_real(method:str=Columns.OCCUPANCY_GEOMA,climate_zone:str="marine"):
+
+    print(f"Plotting HVAC timeseries {method}")
+    objects = pd.read_csv(os.path.join(".", f"results/fit_score_{method}.csv"))
+
+    objects=objects.loc[(objects["climate_zone"]==climate_zone)&(objects["year"].isin([2009]))]
+
+    for idx,obj in objects.iterrows():
+        
+        id   =obj[Objects.ID]
+        year =obj["year"]
+
+        print(f"Processing ID:{id}, year:{year}")
+
+        climate_zone=objects.loc[objects[Objects.ID]==id,"climate_zone"].iloc[0]
+        df_hvac_real= pd.read_csv(f"data/validation/demand/{id}.csv", parse_dates=[Columns.DATETIME])
+        df_solar_gains=pd.read_csv(f"data/validation/solar_gains/{id}_{year}.csv")
+        df_weather=pd.read_csv(f"data/validation/weather/cleaned/{climate_zone}.csv")
+        df_weather[Columns.DATETIME] = pd.to_datetime(df_weather[Columns.DATETIME])
+        df_solar_gains["datetime"]=pd.to_datetime(df_solar_gains["datetime"])
+
+        fig, ax1 = plt.subplots(figsize=(12, 5))
+
+
+        ax1.plot(df_solar_gains[Columns.DATETIME],df_solar_gains[Objects.GAINS_SOLAR]/1000, color="tab:orange", label="Solar Gains",alpha=0.5)
+        ax1.plot(df_hvac_real[Columns.DATETIME], df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"]/1000, color="darkred", label="Real Heating Load")
+        ax1.plot(df_hvac_real[Columns.DATETIME], df_hvac_real[f"{Types.COOLING}_{Columns.DEMAND}[W]"]/1000, color="royalblue", label="Real Cooling Load")
+
+
+        ax1.set_ylabel("Load [kW]")
+
+        # Combine legends
+        lines, labels = ax1.get_legend_handles_labels()
+
+        ax1.legend(lines, labels , loc="upper left")
+
+
+        # Improve layout
+        plt.title(f"Real HVAC loads Over Time, climate zone:{climate_zone}")
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        # Save figure
+        plt.savefig(f"results/images/timeseries/{method}/{climate_zone}/{id}_{year}_real_hvac_.png", dpi=300)
+

@@ -1,7 +1,11 @@
+import numpy
 import pandas as pd
 from teaser.project import Project
 import json
 from entise.constants.objects import Objects
+
+
+FLOOR_HEIGHT=2.7
 
 def generate_buildings():
 
@@ -37,7 +41,7 @@ def generate_buildings():
             name=f"{row["bldg_id"]}_{row["year"]}",
             year_of_construction=row["year"],
             number_of_floors=row["in.geometry_stories"],
-            height_of_floors=2.7,
+            height_of_floors=FLOOR_HEIGHT,
             net_leased_area=row["in.sqft"]*0.09290304,
             inner_wall_approximation_approach="teaser_default",#typical length * height of floors + 2 * typical width * height of floors
             )
@@ -64,7 +68,7 @@ def calculate_rc():
         mat = layer["material"]
         k = mat["thermal_conduc"]                 # W/m·K
         rho = mat["density"]                      # kg/m³
-        c = mat["heat_capac"] * 1000              # kJ/kg·K → J/kg·K
+        c = mat["heat_capac"]*1000           # kJ/kg·K → J/kg·K
         R = thickness / (k * area)                # K/W
         C = rho * c * area * thickness            # J/K
         return R, C
@@ -86,15 +90,6 @@ def calculate_rc():
             R_list.append(R)
             C_list.append(C)
         # Parallel combination of resistances
-        if len(R_list)==0:
-            R_eff=0
-        else:
-            R_eff = 1 / sum(1/r for r in R_list)
-        if len (C_list)==0:
-            C_eff=0
-        else:
-            C_eff = sum(C_list)
-
         if len(R_list)==0:
             R_eff=0
         else:
@@ -217,3 +212,69 @@ def generate_windows_tipology():
     
     df_windows.to_csv("data/validation/tipology/windows.csv",index=False)
 
+
+def estimate_window_areas_nrel():
+    df=pd.read_csv("data/validation/objects_entise.csv")
+    df_windows=pd.read_csv("data/validation/tipology/windows.csv")
+
+    results = []
+
+    story_height = FLOOR_HEIGHT  # meters
+
+    # Orientation mapping for façades (assuming 'orientation' is main façade)
+    orientation_map = {
+    "North": 0,
+    "Northeast": 45,
+    "East": 90,
+    "Southeast": 135,
+    "South": 180,
+    "Southwest": 225,
+    "West": 270,
+    "Northwest": 315
+}
+
+    # Rotation offset by main façade orientation
+    rotation_offsets = {
+        "Front": 0, "Right": 90, "Back": 180, "Left": 270
+    }
+
+    for _, row in df.iterrows():
+        floor_area = row["area[m2]"]
+        stories = row["stories"]
+        main_orientation = row["orientation[degree]"]
+        window_codes = row["in.window_areas"].split()
+
+        # Parse codes like "F9" -> {"F": 0.09}
+        ratios = {code[0]: int(code[1:]) / 100 for code in window_codes}
+
+        # Approximate building geometry
+        L = W = numpy.sqrt(floor_area / stories)
+        wall_area = L * (stories * story_height)
+
+        # Main orientation angle
+        main_angle = orientation_map.get(main_orientation[:2], 0)
+
+        # Map façades to absolute orientations
+        facade_orientations = {
+            "F": float(main_angle),
+            "R": float((main_angle + 90) % 360),
+            "B": float((main_angle + 180) % 360),
+            "L": float((main_angle + 270) % 360)
+        }
+
+        # Compute per-facade window areas
+        for key, ratio in ratios.items():
+            win_area = wall_area * ratio
+            results.append({
+                "id": row["id"],
+                "year": row["year"],
+                "nrel_area[m2]": win_area,
+                "orientation[degree]": facade_orientations.get(key, numpy.nan)
+            })
+
+    df_nrel_windows=pd.DataFrame(results)
+    df_windows=df_windows.merge(df_nrel_windows,on=["id","year","orientation[degree]"],how="outer")
+    df_windows.to_csv("data/validation/tipology/windows_nrel.csv",index=False)
+
+
+estimate_window_areas_nrel()

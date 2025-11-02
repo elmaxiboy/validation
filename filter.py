@@ -169,6 +169,8 @@ def to_object_file():
            Objects.RESISTANCE,
            Objects.CAPACITANCE,
            "in.heating_setpoint",
+           "in.heating_setpoint_offset_magnitude",
+           "in.cooling_setpoint_offset_magnitude",
            "in.cooling_setpoint",
            "in.window_areas",
            "filename",
@@ -200,10 +202,12 @@ def to_object_file():
     #Convert Units
 
     df[Objects.TEMP_MIN] = pd.to_numeric(df[Objects.TEMP_MIN].astype(str).str.replace("F", "", regex=False), errors="coerce")
+    df["in.heating_setpoint_offset_magnitude"] = pd.to_numeric(df["in.heating_setpoint_offset_magnitude"].astype(str).str.replace("F", "", regex=False), errors="coerce")
     df[Objects.TEMP_MAX] = pd.to_numeric(df[Objects.TEMP_MAX].astype(str).str.replace("F", "", regex=False), errors="coerce")
+    df["in.cooling_setpoint_offset_magnitude"] = pd.to_numeric(df["in.cooling_setpoint_offset_magnitude"].astype(str).str.replace("F", "", regex=False), errors="coerce")
 
-    df[Objects.TEMP_MIN] = ((df[Objects.TEMP_MIN] - 32) * 5 / 9).round(2)
-    df[Objects.TEMP_MAX] = ((df[Objects.TEMP_MAX] - 32) * 5 / 9).round(2)
+    df[Objects.TEMP_MIN] = ((df[Objects.TEMP_MIN]-df["in.heating_setpoint_offset_magnitude"]- 32) * 5 / 9).round(2)
+    df[Objects.TEMP_MAX] = ((df[Objects.TEMP_MAX]+df["in.cooling_setpoint_offset_magnitude"] - 32) * 5 / 9).round(2)
 
     df=df.loc[df[Objects.TEMP_MIN]<df[Objects.TEMP_MAX]]
 
