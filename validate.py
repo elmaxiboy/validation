@@ -23,13 +23,126 @@ occupancy_folder=f"data/validation/{Types.OCCUPANCY}"
 hvac_folder=f"data/validation/hvac"
 weather_folder="data/validation/weather"
 real_demand_folder="C:/Users/escobarm/Desktop/thesis/validation_data/counties"
+temperature_setpoints_folder="data/validation/temperature_setpoints"
 
+
+
+#if not obj["climate_zone"]=="marine":
+#    continue
+#if not int(obj["id"])==(77361):
+#    continue
+
+def generate_min_max_temperatures_schedule():
+    global objects
+    def shift_period(period_str, default_periods):
+        """
+        Returns a list of tuples (start_hour, end_hour) shifted by +/- hours.
+        """
+        if pd.isna(period_str):
+            return []
+
+        # Split period and shift
+        if '+' in period_str:
+            period_base, shift = period_str.rsplit('+', 1)
+            shift_hours = int(shift.replace('h', ''))
+        elif '-' in period_str:
+            period_base, shift = period_str.rsplit('-', 1)
+            shift_hours = -int(shift.replace('h', ''))
+        else:
+            period_base = period_str
+            shift_hours = 0
+
+        period_base = period_base.strip()
+
+        periods = default_periods.get(period_base)
+        if periods is None:
+            return []
+
+        # normalize to list of tuples
+        if isinstance(periods[0], tuple):
+            periods_list = periods
+        else:
+            periods_list = [periods]
+
+        # shift hours
+        shifted = []
+        for start, end in periods_list:
+            start_shifted = (start + shift_hours) % 24
+            end_shifted = (end + shift_hours) % 24
+            shifted.append((start_shifted, end_shifted))
+        return shifted
+
+    def in_period(hour, start, end):
+        """Check if a given hour is in start-end, handling overnight periods."""
+        if start < end:
+            return start <= hour < end
+        else:
+            # overnight
+            return hour >= start or hour < end
+
+    # Generate timeseries for full year of 2018, 15-min intervals
+    datetime_index = pd.date_range("2018-01-01", "2018-12-31 23:45", freq="15T")
+
+    heating_periods = {
+        "Day": (9, 17),
+        "Night": (22, 7),
+        "Day and Night": [(9, 17), (22, 7)],
+    }
+
+    cooling_periods = {
+        "Day Setup": (9, 17),
+        "Night Setback": (22, 7),
+        "Night Setup": (22, 7),
+        "Day and Night Setup": [(9, 17), (22, 7)],
+        "Day Setup and Night Setback": [(9, 17), (22, 7)],
+    }
+    processed_ids = []
+    
+
+    for _, row in objects.iterrows():
+        if row["id"] in processed_ids:
+            continue
+
+        df = pd.DataFrame({"datetime": datetime_index})
+        df["id"] = row["id"]
+
+        # === Heating (subtract offset to create setback) ===
+        heating_periods_shifted = shift_period(row["heating_offset_period"], heating_periods)
+        heating_setpoint = []
+        for dt in df["datetime"]:
+            hour = dt.hour + dt.minute / 60
+            temp = row["min_temperature[C]"]
+            for start, end in heating_periods_shifted:
+                if in_period(hour, start, end):
+                    temp -= row["offset_min_temperature[C]"]  #subtract offset
+                    break
+            heating_setpoint.append(temp)
+        df["min_temperature[C]"] = heating_setpoint
+
+        # === Cooling (add offset to create setup) ===
+        cooling_periods_shifted = shift_period(row["cooling_offset_period"], cooling_periods)
+        cooling_setpoint = []
+        for dt in df["datetime"]:
+            hour = dt.hour + dt.minute / 60
+            temp = row["max_temperature[C]"]
+            for start, end in cooling_periods_shifted:
+                if in_period(hour, start, end):
+                    temp += row["offset_max_temperature[C]"]  #add offset
+                    break
+            cooling_setpoint.append(temp)
+        df["max_temperature[C]"] = cooling_setpoint
+        df["max_temperature[C]"]=df["max_temperature[C]"].round(2)
+        df["min_temperature[C]"]=df["min_temperature[C]"].round(2)
+        df=df.drop(columns="id")
+        df.to_csv(f"data/validation/temperature_setpoints/{row["id"]}.csv",index=False)
+        
+        processed_ids.append(row["id"])
 
 
 #DERIVE OCCUPANCY SCHEDULE
 def derive_occupancy_schedule():
 
-    objects = pd.read_csv(os.path.join(cwd, "data/validation/objects_entise.csv"))
+    global objects
 
     df_summary=pd.DataFrame(columns=[Objects.ID,"method",f"average_{Types.OCCUPANCY}"])
     
@@ -41,8 +154,12 @@ def derive_occupancy_schedule():
 
     for idx,obj in objects.iterrows():
         data = {}
+
         obj_id = str(obj[Objects.ID])
 
+        #if not obj_id=="80450":
+        #    continue
+    
         if obj_id in processed_ids:
             continue
 
@@ -132,14 +249,14 @@ def derive_ventilation(obj,data):
     
     return obj,data
 
-def derive_internal_gains():
+def derive_internal_gains(objects,gains_per_person):
 
-    objects = pd.read_csv(os.path.join(cwd, "data/validation/objects_entise.csv"))
+    objects=objects.copy()
 
     objects=objects.drop(columns=["year",Objects.RESISTANCE,Objects.CAPACITANCE])
     objects=objects.drop_duplicates()
 
-    objects[Objects.GAINS_INTERNAL_PER_PERSON]=65 #FISCHER NUMBER
+    objects[Objects.GAINS_INTERNAL_PER_PERSON]=gains_per_person #FISCHER NUMBER
 
     for idx,obj in objects.iterrows():
         data = {}
@@ -164,11 +281,12 @@ def derive_internal_gains():
 
         df.to_csv(f"data/validation/internal_gains/{Columns.OCCUPANCY_PHT}/{obj_id}.csv")
 
-def derive_solar_gains():
+def derive_solar_gains(objects,reduce_area,reduce_shading):
     print(f"Solar Gains")
-    objects = pd.read_csv(os.path.join(cwd, "data/validation/objects_entise.csv"))
+    objects=objects.copy()
     solar_gains_generator = SolarGainsPVLib()
-    
+    hot_months=[4,5,6,7,8,9]
+    cold_months=[1,2,3,10,11,12]
     for idx,obj in objects.iterrows():
         data={}
         
@@ -180,25 +298,28 @@ def derive_solar_gains():
         
         df_windows=get_windows(obj)
 
-        #REDUCED AREA AND SHADING BY 50%
-        df_windows[Objects.AREA]=df_windows[Objects.AREA]*0.5
+        df_windows[Objects.AREA]=df_windows[Objects.AREA]
         df_windows[Columns.SHADING]=df_windows[Columns.SHADING]
+        df_windows[Columns.TRANSMITTANCE]=0.75
         data[Objects.WINDOWS]=df_windows
         
         df_solar_gains=solar_gains_generator.generate(obj=obj,data=data)
         df_solar_gains=df_solar_gains.reset_index()
+        df_solar_gains.loc[df_solar_gains["datetime"].dt.month.isin(hot_months),Objects.GAINS_SOLAR]*=(reduce_area*reduce_shading)
+        #df_solar_gains.loc[df_solar_gains["datetime"].dt.month.isin(cold_months),Objects.GAINS_SOLAR]*=(reduce_area*(reduce_shading+0.5))
         df_solar_gains.to_csv(f"{solar_gains_folder}/{obj[Objects.ID]}_{obj["year"]}.csv",index=False)
         
 
-def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
+def derive_hvac(objects,capacitance_factor,resistance_factor,ventilation_mode,method:str=Columns.OCCUPANCY_GEOMA):
     print(f"HVAC calculation: {method}")
     
+    objects=objects.copy()
+
     internal_gains_folder="data/validation/internal_gains"
     weather_folder="data/validation/weather"
     hvac_folder="data/validation/hvac"
     real_demand_folder="data/validation/demand"
 
-    objects = pd.read_csv(os.path.join(cwd, "data/validation/objects_entise.csv"))
     objects=objects[[Objects.ID,"year",
                      Objects.INHABITANTS,
                      Objects.RESISTANCE,
@@ -214,13 +335,13 @@ def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
     objects[Objects.GAINS_INTERNAL] =   Objects.GAINS_INTERNAL
     objects[Objects.GAINS_INTERNAL_COL] = Objects.GAINS_INTERNAL
     objects[Objects.VENTILATION]    =   Objects.VENTILATION
-    objects[Objects.VENTILATION_COL] = "optimal"
+    objects[Objects.VENTILATION_COL] = ventilation_mode
     objects[Objects.WINDOWS]    =   Objects.WINDOWS
 
     #Initialize missing parameters
     objects[Objects.ACTIVE_COOLING] = True
     objects[Objects.ACTIVE_HEATING] = True
-    objects[Objects.POWER_HEATING]  = numpy.inf
+    
 
     full_index = pd.date_range(start="2018-01-01 00:00:00", end="2018-12-31 23:45:00", freq="15min",name=Columns.DATETIME)
 
@@ -229,18 +350,27 @@ def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
             data = {}
             obj_id =str(obj[Objects.ID])
             obj_year=obj["year"]
+
             obj[Objects.TEMP_MAX]=obj[Objects.TEMP_MAX]+273.15
             obj[Objects.TEMP_MIN]=obj[Objects.TEMP_MIN]+273.15
             obj[Objects.TEMP_INIT] = (obj[Objects.TEMP_MAX]+obj[Objects.TEMP_MIN])/2
 
-            #Cooling load cannot be higher than the total electricity load of the building?
-            try:
-                obj[Objects.POWER_COOLING]  = pd.read_csv(f"{real_demand_folder}/{obj_id}.csv")[f"total_{Columns.POWER}"].max()
+            obj[Objects.CAPACITANCE]=obj[Objects.CAPACITANCE]*capacitance_factor
+            obj[Objects.RESISTANCE]=obj[Objects.RESISTANCE]*resistance_factor
+
+            #Detect power limits
+            real_demand=pd.read_csv(f"{real_demand_folder}/{obj_id}.csv")
+            obj[Objects.POWER_HEATING]  = detect_upper_limit(real_demand[f"{Types.HEATING}_{Columns.DEMAND}[W]"])
+            obj[Objects.POWER_COOLING]  = detect_upper_limit(real_demand[f"{Types.COOLING}_{Columns.DEMAND}[W]"])
             
-            except:
-                obj[Objects.POWER_COOLING]=numpy.inf
-                
+            
             print(f"Processing ID:{obj_id}, year:{obj_year}")
+
+            #Add Temperature Setpoints
+            #df_setpoints=pd.read_csv(f"{temperature_setpoints_folder}/{obj_id}.csv")
+            #df_setpoints[Objects.TEMP_MIN]=df_setpoints[Objects.TEMP_MIN]+273.15
+            #df_setpoints[Objects.TEMP_MAX]=df_setpoints[Objects.TEMP_MAX]+273.15
+            #data[Objects.TEMP_SETPOINTS]=df_setpoints
 
             #Add Weather Data
             df_weather=get_weather_timeseries(obj)
@@ -255,8 +385,7 @@ def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
             #Add Internal Gains Data
             df_internal_gains=pd.read_csv(f"{internal_gains_folder}/{method}/{obj_id}.csv")
             df_internal_gains=set_datetime_index(df_internal_gains)
-            data[Objects.GAINS_INTERNAL]=df_internal_gains
-            
+            data[Objects.GAINS_INTERNAL]=df_internal_gains          
 
             #Add Ventilation
             obj,data=derive_ventilation(obj,data)
@@ -276,10 +405,9 @@ def derive_hvac(method:str=Columns.OCCUPANCY_GEOMA):
             df_hvac[Columns.TEMP_IN]=df_hvac[Columns.TEMP_IN]-273.15
             df_hvac.to_csv(f"{hvac_folder}/{method}/{obj_id}_{obj_year}.csv",index=False)
 
-def summarize_hvac(method:str=Columns.OCCUPANCY_GEOMA):
+def summarize_hvac(objects,method:str=Columns.OCCUPANCY_GEOMA):
     print(f"Summarize HVAC")
-    objects = pd.read_csv(os.path.join(cwd, "data/validation/objects_entise.csv"))
-
+    objects=objects.copy()
     df_summary=pd.DataFrame(columns=[
     Objects.ID,
     "year",
@@ -295,7 +423,8 @@ def summarize_hvac(method:str=Columns.OCCUPANCY_GEOMA):
 
     for idx,obj in objects.iterrows():
         
-        print(f"Processing ID: {obj[Columns.ID]}, year:{obj["year"]}")
+        
+        #print(f"Processing ID: {obj[Columns.ID]}, year:{obj["year"]}")
 
         obj_id =str(obj[Objects.ID])
         obj_year=obj["year"]
@@ -328,14 +457,8 @@ def summarize_hvac(method:str=Columns.OCCUPANCY_GEOMA):
         df_summary.at[idx,f"{Types.HEATING}_{Columns.DEMAND}_simulated[kWh]"]   = round((df_hvac[f"{Types.HEATING}_{Columns.DEMAND}[W]"].sum()/4)/1000,1)
         df_summary.at[idx,f"{Types.HEATING}_{Columns.DEMAND}_real[kWh]"]        = round((df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"].sum()/4)/1000,1)
 
-        df_summary.at[idx,f"{Types.HEATING}_{Columns.LOAD}_simulated_max[kW]"]  = round(df_hvac[f"{Types.HEATING}_{Columns.DEMAND}[W]"].max()/1000,1)
-        df_summary.at[idx,f"{Types.HEATING}_{Columns.LOAD}_real_max[kW]"]       = round(df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"].max()/1000,1)
-
         df_summary.at[idx,f"{Types.COOLING}_{Columns.DEMAND}_simulated[kWh]"]   = round((df_hvac[f"{Types.COOLING}_{Columns.DEMAND}[W]"].sum()/4)/1000,1)
         df_summary.at[idx,f"{Types.COOLING}_{Columns.DEMAND}_real[kWh]"]        = round((df_hvac_real[f"{Types.COOLING}_{Columns.DEMAND}[W]"].sum()/4)/1000,1)
-        
-        df_summary.at[idx,f"{Types.COOLING}_{Columns.LOAD}_simulated_max[kW]"]  = round(df_hvac[f"{Types.COOLING}_{Columns.DEMAND}[W]"].max()/1000,1)
-        df_summary.at[idx,f"{Types.COOLING}_{Columns.LOAD}_real_max[kW]"]       = round(df_hvac_real[f"{Types.COOLING}_{Columns.DEMAND}[W]"].max()/1000,1)
         
         df_summary.at[idx,f"{Types.HEATING}_{Columns.DEMAND}_simulated[kWh]/{Objects.AREA}"]=   round(((df_hvac[f"{Types.HEATING}_{Columns.DEMAND}[W]"].sum()/4)/1000)/obj_area,1)
         df_summary.at[idx,f"{Types.HEATING}_{Columns.DEMAND}_real[kWh]/{Objects.AREA}"]     =   round((( df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"].sum()/4)/1000)/obj_area,1)
@@ -344,7 +467,8 @@ def summarize_hvac(method:str=Columns.OCCUPANCY_GEOMA):
         df_summary.at[idx,f"{Types.COOLING}_{Columns.DEMAND}_real[kWh]/{Objects.AREA}"]     =   round(((df_hvac_real[f"{Types.COOLING}_{Columns.DEMAND}[W]"].sum()/4)/1000)/obj_area,1)
 
         
-    df_summary.to_csv(f"results/hvac_summary_{method}.csv",index=False)
+    #df_summary.to_csv(f"results/hvac_summary_{method}.csv",index=False)
+    return df_summary
 
 
 def get_weather_timeseries(obj):
@@ -487,15 +611,21 @@ def set_datetime_index(df):
     return df
 
 def get_real_demand_files():
-
-    objects = pd.read_csv(os.path.join(cwd, "data/validation/objects_entise.csv")).drop_duplicates(subset="id", keep="first")
+    global objects
+    objects = objects.drop_duplicates(subset="id", keep="first")
     cz_folders=os.listdir(real_demand_folder)
 
     for idx,obj in objects.iterrows():
+        
+        #if not obj[Columns.ID]==80450:
+        #    continue
+
         cz_code=str(obj["filename"]).split("_")[0]
         cz_folder=next((f for f in cz_folders if f.split("_")[0] == cz_code), None)
         real_demand=pd.read_csv(f"{real_demand_folder}/{cz_folder}/households/{obj[Columns.ID]}/{obj[Columns.ID]}_timeseries_adjusted.csv")
+        
         print(f"Processing ID: {obj[Columns.ID]}, year:{obj["year"]}")
+        
         try:
             raw_demand_parquet=pd.read_parquet(f"{real_demand_folder}/{cz_folder}/households/{obj[Columns.ID]}/{obj[Columns.ID]}_timeseries.parquet")
         except Exception as e:
@@ -537,33 +667,97 @@ def get_real_demand_files():
         real_demand[f"total_{Columns.POWER}"]=real_demand[f"total_{Columns.POWER}"].bfill()
         real_demand[f"{Types.COOLING}_{Columns.DEMAND}[W]"]=real_demand[f"{Types.COOLING}_{Columns.DEMAND}[W]"].bfill()
 
-        lowerr_heating,upper_heating = real_demand[f"{Types.HEATING}_{Columns.DEMAND}[W]"].quantile([0.05, 0.999])
+        lower_heating,upper_heating = real_demand[f"{Types.HEATING}_{Columns.DEMAND}[W]"].quantile([0.05, 0.999])
         real_demand[f"{Types.HEATING}_{Columns.DEMAND}[W]"] =real_demand[f"{Types.HEATING}_{Columns.DEMAND}[W]"].clip(upper=upper_heating) 
         real_demand.drop(real_demand.tail(1).index,inplace=True)
         real_demand.to_csv(f"{demand_folder}/{obj[Columns.ID]}.csv",index=False)
 
 #get_real_demand_files()
 
-def calculate_fit_score(method=Columns.OCCUPANCY_GEOMA):
-    df=pd.read_csv(f"results/hvac_summary_{method}.csv")
+def calculate_fit_score(df,method=Columns.OCCUPANCY_GEOMA,name=""):
+    #df=pd.read_csv(f"results/hvac_summary_{method}.csv")
 
-    df["heating_demand_error"] = (df["heating_demand_simulated[kWh]"] - df["heating_demand_real[kWh]"]).abs()
-    df["heating_load_error"]   = (df["heating_load_simulated_max[kW]"] - df["heating_load_real_max[kW]"]).abs()
-    df["cooling_demand_error"] = (df["cooling_demand_simulated[kWh]"] - df["cooling_demand_real[kWh]"]).abs()
-    df["cooling_load_error"]   = (df["cooling_load_simulated_max[kW]"] - df["cooling_load_real_max[kW]"]).abs()
+    df["heating_demand_error"] = round((df["heating_demand_simulated[kWh]"] - df["heating_demand_real[kWh]"]).abs(),2)
+    #df["heating_load_error"]   = (df["heating_load_simulated_max[kW]"] - df["heating_load_real_max[kW]"]).abs()
+    df["cooling_demand_error"] = round((df["cooling_demand_simulated[kWh]"] - df["cooling_demand_real[kWh]"]).abs(),2)
+    #df["cooling_load_error"]   = (df["cooling_load_simulated_max[kW]"] - df["cooling_load_real_max[kW]"]).abs()
 
-    df["heating_demand_rel_error"] = df["heating_demand_error"] / df["heating_demand_real[kWh]"].replace(0, numpy.nan)
-    df["heating_load_rel_error"]   = df["heating_load_error"] / df["heating_load_real_max[kW]"].replace(0, numpy.nan)
-    df["cooling_demand_rel_error"] = df["cooling_demand_error"] / df["cooling_demand_real[kWh]"].replace(0, numpy.nan)
-    df["cooling_load_rel_error"]   = df["cooling_load_error"] / df["cooling_load_real_max[kW]"].replace(0, numpy.nan)
+    df["heating_demand_rel_error"] = round(df["heating_demand_error"] / df["heating_demand_real[kWh]"].replace(0, numpy.nan),2)
+    #df["heating_load_rel_error"]   = df["heating_load_error"] / df["heating_load_real_max[kW]"].replace(0, numpy.nan)
+    df["cooling_demand_rel_error"] = round(df["cooling_demand_error"] / df["cooling_demand_real[kWh]"].replace(0, numpy.nan),2)
+    #df["cooling_load_rel_error"]   = df["cooling_load_error"] / df["cooling_load_real_max[kW]"].replace(0, numpy.nan)
 
     df["fit_score"] = df[[
     "heating_demand_rel_error",
-    "heating_load_rel_error",
+    #"heating_load_rel_error",
     "cooling_demand_rel_error",
-    "cooling_load_rel_error"
+    #"cooling_load_rel_error"
     ]].mean(axis=1)
 
     df = df.sort_values("fit_score", ascending=True)
+    
+    df_best_fit_score= (
+    df.groupby("id", as_index=False)
+      .apply(lambda g: g.loc[g["fit_score"].idxmin()])
+      .reset_index(drop=True)
+    )
 
-    df.to_csv(f"results/fit_score_{method}.csv",index=False)
+    df_best_heating_score= (
+    df.groupby("id", as_index=False)
+      .apply(lambda g: g.loc[g["heating_demand_rel_error"].idxmin()])
+      .reset_index(drop=True)
+    )
+
+    df_best_cooling_score=(
+    df.groupby("id", as_index=False)
+      .apply(lambda g: g.loc[g["cooling_demand_rel_error"].idxmin()])
+      .reset_index(drop=True)
+    )
+    
+    df.to_csv(f"results/fit_score_{method}_{name}.csv",index=False)
+    df_best_fit_score.to_csv(f"results/best_fit_score_{method}_{name}.csv",index=False)
+    df_best_heating_score.to_csv(f"results/best_heating_score_{method}_{name}.csv",index=False)
+    df_best_cooling_score.to_csv(f"results/best_cooling_score_{method}_{name}.csv",index=False)
+
+    fit_score=df["fit_score"].iloc[0]
+    heating_demand_error=df["heating_demand_rel_error"].iloc[0]
+    cooling_demand_error=df["cooling_demand_rel_error"].iloc[0]
+
+    print(f"Best fit for this iteration: {fit_score}")
+    return df_best_fit_score,df_best_heating_score,df_best_cooling_score,fit_score,heating_demand_error,cooling_demand_error
+
+
+def detect_upper_limit(s: pd.Series) -> float:
+    # Ignore empty or all-zero series
+    if s.empty or s.max() == 0:
+        return numpy.inf
+
+    max_val = s.max()
+    mask = (s == max_val).astype(int)
+
+    # Detect if any two consecutive readings are at the max value
+    if ((mask.shift(1) == 1) & (mask == 1)).any():
+        return max_val
+    else:
+        return numpy.inf
+    
+def add_typical_open_ventilation():
+    
+    df=pd.read_csv(f"data/validation/tipology/ventilation.csv")
+
+    df["datetime"]=pd.to_datetime(df["datetime"],errors="coerce")
+
+    # Define your cooling season (adjust dates as needed)
+    cooling_start = pd.Timestamp("2018-05-01", tz="UTC")
+    cooling_end = pd.Timestamp("2018-09-30", tz="UTC")
+
+    # Copy the 'typical' column
+    df["typical_open"] = df["typical"]
+
+    # During the cooling season, set windows "open 24/7"
+    # → For example, increase the ventilation fraction to 1.0 (fully open)
+    mask = (df["datetime"] >= cooling_start) & (df["datetime"] <= cooling_end)
+    df.loc[mask, "typical_open"] = 1.0
+
+    df.to_csv("data/validation/tipology/ventilation.csv",index=False)
+

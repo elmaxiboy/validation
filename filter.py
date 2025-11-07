@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import os
 from entise.constants.objects import Objects
+from entise.constants.columns import Columns
+from entise.constants.ts_types import Types
 
 def filter_single_family_detached():
 
@@ -73,6 +75,10 @@ def filter_single_family_detached():
         "in.hvac_secondary_heating_type_and_fuel",
         "in.heating_setpoint",
         "in.cooling_setpoint",
+        "in.heating_setpoint_offset_period",
+        "in.cooling_setpoint_offset_period",
+        "in.heating_setpoint_has_offset",
+        "in.cooling_setpoint_has_offset",
         "in.heating_setpoint_offset_magnitude",
         "in.cooling_setpoint_offset_magnitude",
 
@@ -170,8 +176,10 @@ def to_object_file():
            Objects.CAPACITANCE,
            "in.heating_setpoint",
            "in.heating_setpoint_offset_magnitude",
-           "in.cooling_setpoint_offset_magnitude",
+           "in.heating_setpoint_offset_period",
            "in.cooling_setpoint",
+           "in.cooling_setpoint_offset_magnitude",
+           "in.cooling_setpoint_offset_period",
            "in.window_areas",
            "filename",
            "in.geometry_stories",
@@ -205,9 +213,21 @@ def to_object_file():
     df["in.heating_setpoint_offset_magnitude"] = pd.to_numeric(df["in.heating_setpoint_offset_magnitude"].astype(str).str.replace("F", "", regex=False), errors="coerce")
     df[Objects.TEMP_MAX] = pd.to_numeric(df[Objects.TEMP_MAX].astype(str).str.replace("F", "", regex=False), errors="coerce")
     df["in.cooling_setpoint_offset_magnitude"] = pd.to_numeric(df["in.cooling_setpoint_offset_magnitude"].astype(str).str.replace("F", "", regex=False), errors="coerce")
+    
+    df["in.heating_setpoint_offset_magnitude"] = ((df["in.heating_setpoint_offset_magnitude"]+ df[Objects.TEMP_MIN]- 32) * 5 / 9).round(2)
+    df["in.cooling_setpoint_offset_magnitude"] = ((df["in.cooling_setpoint_offset_magnitude"]+ df[Objects.TEMP_MAX] - 32) * 5 / 9).round(2)
 
-    df[Objects.TEMP_MIN] = ((df[Objects.TEMP_MIN]-df["in.heating_setpoint_offset_magnitude"]- 32) * 5 / 9).round(2)
-    df[Objects.TEMP_MAX] = ((df[Objects.TEMP_MAX]+df["in.cooling_setpoint_offset_magnitude"] - 32) * 5 / 9).round(2)
+    df[Objects.TEMP_MIN] = ((df[Objects.TEMP_MIN]- 32) * 5 / 9).round(2)
+    df[Objects.TEMP_MAX] = ((df[Objects.TEMP_MAX]- 32) * 5 / 9).round(2)
+    
+    df["in.heating_setpoint_offset_magnitude"] = (df["in.heating_setpoint_offset_magnitude"]- df[Objects.TEMP_MIN]).round(2)
+    df["in.cooling_setpoint_offset_magnitude"] = (df["in.cooling_setpoint_offset_magnitude"]- df[Objects.TEMP_MAX]).round(2)
+
+    df=df.rename(columns={  "in.heating_setpoint_offset_magnitude":f"offset_{Objects.TEMP_MIN}",
+                            "in.cooling_setpoint_offset_magnitude":f"offset_{Objects.TEMP_MAX}",
+                            "in.heating_setpoint_offset_period":f"{Types.HEATING}_offset_period",
+                            "in.cooling_setpoint_offset_period":f"{Types.COOLING}_offset_period",
+                          })
 
     df=df.loc[df[Objects.TEMP_MIN]<df[Objects.TEMP_MAX]]
 
@@ -221,5 +241,16 @@ def to_object_file():
 
     df=df.loc[pd.to_numeric(df["year"])!=2016]
     
-
     df.to_csv("data/validation/objects_entise.csv",index=False)
+
+
+def get_unique_offset_periods():
+    df= pd.read_csv("data/validation/objects_entise.csv")
+    heating_offset_periods=df[f"{Types.HEATING}_offset_period"].unique()
+    cooling_offset_periods=df[f"{Types.COOLING}_offset_period"].unique()
+
+    print(f"Heating offset periods:{heating_offset_periods}")
+    print()
+    print(f"Cooling offset periods:{cooling_offset_periods}")
+
+

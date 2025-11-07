@@ -1,11 +1,13 @@
 import os
 from matplotlib import pyplot as plt
+import matplotlib
 import numpy as np
 import pandas as pd
 import seaborn as sns
 from entise.constants import Types
 from entise.constants.columns import Columns
 from entise.constants.objects import Objects
+matplotlib.use("Agg")
 
 
 def digest_summary():
@@ -297,23 +299,22 @@ def plot_hvac_loads(method):
         ax1.plot(df_hvac[Columns.DATETIME], df_hvac[f"{Types.HEATING}_{Columns.DEMAND}[W]"]/1000, color="tab:red", label="Heating Load")
         ax1.plot(df_hvac[Columns.DATETIME], df_hvac[f"{Types.COOLING}_{Columns.DEMAND}[W]"]/1000, color="tab:blue", label="Cooling Load")
 
-
-        ax1.set_ylabel("Load [kW]")
         ax2.set_ylabel("Temperature [°C]")
+        ax1.set_ylabel("Load [kW]")
 
 
         # Combine legends
-        lines, labels = ax1.get_legend_handles_labels()
         lines_2, labels_2 = ax2.get_legend_handles_labels()
+        lines, labels = ax1.get_legend_handles_labels()
+        
 
         ax1.legend(lines, labels , loc="upper left")
         ax2.legend(lines_2, labels_2 , loc="upper right")
-
+        
 
         # Improve layout
         plt.title(f"Loads Over Time, climate zone:{climate_zone}")
         plt.xticks(rotation=45)
-        plt.tight_layout()
 
         # Save figure
         plt.savefig(f"results/images/timeseries/{method}/hvac_loads_solar_gains_{id}_{year}.png", dpi=300)
@@ -569,19 +570,24 @@ def scatter_plot_max_load_real_vs_simulated(method):
         g.savefig(f"results/images/scatterplots/{method}/max_load_comparison_{cz}.png")
 
 
-def barplot_ranking_fit_score(method):
+def barplot_ranking_fit_score(method,name):
 
-
-    climate_order = ["very cold", "cold", "marine", "mixed dry", "hot dry", "hot humid"]
     rel_error_cols = [
         "heating_demand_rel_error",
-        "heating_load_rel_error",
         "cooling_demand_rel_error",
-        "cooling_load_rel_error",
     ]
 
     ################## OVERALL PERFOMANCE ###########################
-    df = pd.read_csv(f"results/fit_score_{method}.csv")
+    
+    df = pd.read_csv(f"results/best_fit_score_{method}_{name}.csv")
+
+    climate_order = (
+        df.groupby("climate_zone")["fit_score"]
+          .mean()
+          .sort_values(ascending=True)
+          .index.to_list()
+    )
+
     df["climate_zone"] = pd.Categorical(df["climate_zone"], categories=climate_order, ordered=True)
 
     df["fit_score_log"] = np.log(df["fit_score"])
@@ -596,23 +602,17 @@ def barplot_ranking_fit_score(method):
     
     g.set_xlabel("Climate Zone")
     g.set_ylabel("log(Fit Score)")
-    g.set_title(f"Model Fit Score by Climate Zone — {method}")
-    plt.legend(title="Year")
+    g.set_title(f"Overall Fit Score by Climate Zone — {method}")
+    plt.legend(title="Building year")
     plt.tight_layout()
     plt.savefig(f"results/images/barplots/fit_score_{method}.png", dpi=300)
     plt.close()
 
 ################## PER ERROR COMPONENT ###########################
 
-    df = df.loc[df["year"].isin([2002, 2009])]
 
-    # Melt the relative error columns
-    rel_error_cols = [
-        "heating_demand_rel_error",
-        "heating_load_rel_error",
-        "cooling_demand_rel_error",
-        "cooling_load_rel_error"
-    ]
+    # Melt and prepare dataframe (same as before)
+    rel_error_cols = ["heating_demand_rel_error", "cooling_demand_rel_error"]
 
     df_melted = df.melt(
         id_vars=["climate_zone"],
@@ -621,87 +621,150 @@ def barplot_ranking_fit_score(method):
         value_name="relative_error"
     )
 
-    # Apply log transform (absolute values)
-    df_melted["relative_error_log"] = np.log(df_melted["relative_error"].abs() + 1e-6)
+    df_melted["Relative Error (%)"] = df_melted["relative_error"].abs()*100
 
-    # Clean up metric labels
-    df_melted["metric"] = (
-        df_melted["metric"]
-        .str.replace("_rel_error", "", regex=False)
-        .str.replace("load", "max. load [kW]", regex=False)
-        .str.replace("demand", "demand [kWh]", regex=False)
-        .str.replace("_", " ")
+    df_melted["type"] = df_melted["metric"].apply(
+        lambda x: "Heating [kWh]" if "heating" in x.lower() else "Cooling [kWh]"
     )
 
-    # Add a column for metric type
-    df_melted["type"] = df_melted["metric"].apply(lambda x: "heating" if "heating" in x.lower() else "cooling")
+    palette = {"Heating [kWh]": "#E74C3C", "Cooling [kWh]": "#3498DB"}
 
-    # Combine type and year for hue
-    df_melted["hue"] = df_melted["type"]
-
-    # Define a custom palette
-    palette = {
-        "heating": "#E74C3C",   # dark red
-        "cooling": "#3498DB",   # dark blue
-    }
-
-    # Create the FacetGrid
+    # Create FacetGrid
     g = sns.FacetGrid(
         df_melted,
-        col="climate_zone",
+        row="climate_zone",
         row_order=climate_order,
         sharex=True,
         height=2.2,
         aspect=2,
-        despine=False,
+        despine=False
     )
 
-    # Plot bars using the new hue
+    # Draw boxplots
     g.map_dataframe(
         sns.boxplot,
-        y="metric",
-        x="relative_error_log",
-        hue="hue",
-        orient="h",
+        y="type",  # Use type as y for boxplot orientation
+        x="Relative Error (%)",
+        hue="type",
         palette=palette,
-        showfliers=False,
+        orient="h",
+        showfliers=False
     )
+
+    # Remove y-axis ticks and labels to clean up
     for ax in g.axes.flat:
         ax.axvline(0, color="black", linestyle="--", linewidth=1)
+        ax.set_ylabel("")
+        ax.set_yticks([])  # hide y-axis ticks
+        ax.legend_.remove() if ax.get_legend() else None  # remove individual legends
 
-    g.set_titles(row_template="{row_name}")
-    g.set_axis_labels("log(Relative Error)", "")
-    g.add_legend(title="HVAC Type")
-    plt.savefig(f"results/images/barplots/relative_error_{method}_2000s.png", dpi=300)
+    # Create a proper unified legend manually
+    from matplotlib.patches import Patch
+    # Set main title first
+    g.figure.suptitle("Heating and Cooling Errors", fontsize=16)
+
+    # Adjust layout to leave space for legend and title
+    plt.tight_layout(rect=[0, 0, 1, 0.88])  # leave top ~12% for title + legend
+
+    # Create a proper unified legend above the plots, below the title
+    from matplotlib.patches import Patch
+    legend_elements = [Patch(facecolor=palette[name], label=name) for name in palette]
+    g.figure.legend(
+        handles=legend_elements,
+        title="HVAC Type",
+        loc="upper center",
+        ncol=2,
+        bbox_to_anchor=(0.5, 0.95),  # slightly below suptitle
+        frameon=False
+    )
+
+    plt.savefig(f"results/images/barplots/relative_error_{method}.png", dpi=300)
     plt.close()
 
-    ################## ONLY HEATING DEMAND ###########################
 
-    #df["fit_score_log"] = np.log(df["fit_score"])
+    ################## BEST HEATING DEMAND ###########################
 
+    import matplotlib.cm as cm
+    import matplotlib.colors as mcolors
+    
+    df = pd.read_csv(f"results/best_heating_score_{method}_{name}.csv")
 
+    climate_order = (
+        df.groupby("climate_zone")["heating_demand_rel_error"]
+          .mean()
+          .sort_values(ascending=True)
+          .index.to_list()
+    )
+    
+    df["climate_zone"] = pd.Categorical(df["climate_zone"], categories=climate_order, ordered=True)
+
+    df["heating_demand_rel_error"] = df["heating_demand_rel_error"]*100
+
+    n_colors = df["year"].nunique()  # number of bars per climate_zone
+    cmap = cm.get_cmap("Reds")  # full Reds colormap
+
+    # Take a range avoiding the very lightest values (0.3 to 1.0)
+    colors = [mcolors.rgb2hex(cmap(x)) for x in np.linspace(0.3, 1, n_colors)]
     plt.figure(figsize=(8, 5))
-    g = sns.boxplot(
+    g = sns.barplot(
         data=df,
         x="climate_zone",
         y="heating_demand_rel_error",
+        hue="year",
         order=climate_order,
-        showfliers=False,
-        palette="Reds"
-        )
+        palette=colors)
     
     g.set_xlabel("Climate Zone")
-    g.set_ylabel("Relative Error of Heating Demand (%)")
-    g.set_title(f"Relative Error of Heating Demand for 2000s Buildings — {method}")
+    g.set_ylabel("Relative Error (%)")
+    g.set_title(f"Heating Score by Climate Zone — {method}")
+    plt.legend(title="Building year")
     plt.tight_layout()
-    plt.savefig(f"results/images/barplots/rel_error_heating_{method}.png", dpi=300)
+    plt.savefig(f"results/images/barplots/heating_score_{method}.png", dpi=300)
     plt.close()
 
-def hvac_loads_comparison(climate_zone:str="marine",method= Columns.OCCUPANCY_GEOMA):
-    print(f"Plotting HVAC timeseries {method}")
-    objects = pd.read_csv(os.path.join(".", f"results/fit_score_{method}.csv"))
+        ################## BEST COOLING DEMAND ###########################
 
-    objects=objects.loc[(objects["climate_zone"]==climate_zone)&(objects["year"].isin([2009,2002]))]
+    import matplotlib.cm as cm
+    import matplotlib.colors as mcolors
+    
+    df = pd.read_csv(f"results/best_cooling_score_{method}_{name}.csv")
+
+    climate_order = (
+        df.groupby("climate_zone")["cooling_demand_rel_error"]
+          .mean()
+          .sort_values(ascending=True)
+          .index.to_list()
+    )
+    
+    df["climate_zone"] = pd.Categorical(df["climate_zone"], categories=climate_order, ordered=True)
+
+    df["cooling_demand_rel_error"] = df["cooling_demand_rel_error"]*100
+
+    n_colors = df["year"].nunique()  # number of bars per climate_zone
+    cmap = cm.get_cmap("Blues") 
+
+    # Take a range avoiding the very lightest values (0.3 to 1.0)
+    colors = [mcolors.rgb2hex(cmap(x)) for x in np.linspace(0.3, 1, n_colors)]
+    plt.figure(figsize=(8, 5))
+    g = sns.barplot(
+        data=df,
+        x="climate_zone",
+        y="cooling_demand_rel_error",
+        hue="year",
+        order=climate_order,
+        palette=colors)
+    
+    g.set_xlabel("Climate Zone")
+    g.set_ylabel("Relative Error (%)")
+    g.set_title(f"Cooling Score by Climate Zone — {method}")
+    plt.legend(title="Building year")
+    plt.tight_layout()
+    plt.savefig(f"results/images/barplots/cooling_score_{method}.png", dpi=300)
+    plt.close()
+
+def hvac_loads_comparison(objects,res_factor,cap_factor,solar_gains_factor,method= Columns.OCCUPANCY_GEOMA):
+    print(f"Plotting HVAC timeseries {method}")
+    objects=objects.copy()
 
     for idx,obj in objects.iterrows():
         
@@ -723,30 +786,44 @@ def hvac_loads_comparison(climate_zone:str="marine",method= Columns.OCCUPANCY_GE
 
         fig, ax1 = plt.subplots(figsize=(12, 5))
 
-
-        ax1.plot(df_solar_gains[Columns.DATETIME],df_solar_gains[Objects.GAINS_SOLAR]/1000, color="tab:orange", label="Solar Gains",alpha=0.5)
-        ax1.plot(df_hvac_real[Columns.DATETIME], df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"]/1000, color="darkred", label="Real Heating Load")
-        ax1.plot(df_hvac_real[Columns.DATETIME], df_hvac_real[f"{Types.COOLING}_{Columns.DEMAND}[W]"]/1000, color="royalblue", label="Real Cooling Load")
-        ax1.plot(df_hvac_sim[Columns.DATETIME], df_hvac_sim[f"{Types.HEATING}_{Columns.DEMAND}[W]"]/1000, color="red", label="Simulated Heating Load",alpha=0.8)
-        ax1.plot(df_hvac_sim[Columns.DATETIME], df_hvac_sim[f"{Types.COOLING}_{Columns.DEMAND}[W]"]/1000, color="deepskyblue", label="Simulated Cooling Load",alpha=0.8)
+        ax2=ax1.twinx()
+        #ax1.plot(df_solar_gains[Columns.DATETIME],df_solar_gains[Objects.GAINS_SOLAR]/1000, color="tab:orange", label="Solar Gains",alpha=0.5)
+        ax2.plot(df_weather[Columns.DATETIME],df_weather[Columns.TEMP_AIR],color="tab:orange", label="Air Temperature",alpha=0.5,zorder=1)
+        ax1.plot(df_hvac_real[Columns.DATETIME], df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"]/1000, color="darkred", label="Real Heating Load",zorder=2)
+        ax1.plot(df_hvac_real[Columns.DATETIME], df_hvac_real[f"{Types.COOLING}_{Columns.DEMAND}[W]"]/1000, color="royalblue", label="Real Cooling Load",zorder=2)
+        ax1.plot(df_hvac_sim[Columns.DATETIME], df_hvac_sim[f"{Types.HEATING}_{Columns.DEMAND}[W]"]/1000, color="red", label="Simulated Heating Load",alpha=0.8,zorder=2)
+        ax1.plot(df_hvac_sim[Columns.DATETIME], df_hvac_sim[f"{Types.COOLING}_{Columns.DEMAND}[W]"]/1000, color="deepskyblue", label="Simulated Cooling Load",alpha=0.8,zorder=2)
+        
         #ax1.plot(df_hvac_real[Columns.DATETIME], df_hvac_real[f"total_{Columns.POWER}"]/1000, color="black", label="Real total Load",alpha=0.8)
 
-
+        ax1.set_zorder(ax2.get_zorder() + 1)
+        ax1.patch.set_visible(False)
 
         ax1.set_ylabel("Load [kW]")
+        ax2.set_ylabel("Temperature [C]")
 
-        # Combine legends
+        # collect handles *before* reordering zorder
         lines, labels = ax1.get_legend_handles_labels()
+        lines2, labels2 = ax2.get_legend_handles_labels()
 
-        ax1.legend(lines, labels , loc="upper left")
+        # draw legends manually after layout
+        leg1 = ax1.legend(lines, labels, loc="upper left", frameon=True)
+        leg2 = ax2.legend(lines2, labels2, loc="upper right", frameon=True)
+
+        # make sure both legends are visible above everything
+        for leg in (leg1, leg2):
+            leg.set_zorder(10)
+
+        plt.figtext(0.015, 0.01, f"ID: {id}, Year: {year}, %Res. :{res_factor}, %Cap. :{cap_factor}, %S. Gains: {solar_gains_factor}", ha='left')
 
         # Improve layout
-        plt.title(f"Cooling loads comparison Over Time, climate zone:{climate_zone}")
+        plt.title(f"HVAC loads comparison Over Time, climate zone:{climate_zone}")
         plt.xticks(rotation=45)
         plt.tight_layout()
 
         # Save figure
-        plt.savefig(f"results/images/timeseries/{method}/{climate_zone}/{id}_{year}_hvac_comparison.png", dpi=300)
+        plt.savefig(f"results/images/timeseries/{method}/{climate_zone}/{id}_{year}_hvac_comparison.png", dpi=100)
+        plt.close
 
 def hvac_load_real(method:str=Columns.OCCUPANCY_GEOMA,climate_zone:str="marine"):
 
@@ -792,4 +869,134 @@ def hvac_load_real(method:str=Columns.OCCUPANCY_GEOMA,climate_zone:str="marine")
 
         # Save figure
         plt.savefig(f"results/images/timeseries/{method}/{climate_zone}/{id}_{year}_real_hvac_.png", dpi=300)
+        plt.close
 
+def normalized_boxplot():
+
+    """Creates a plot that compares the simulated and original heating demand over time."""
+    import os
+    import pandas as pd
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    # # Generate datetime index for one year in 1-hour intervals
+    # start_date = pd.to_datetime('2018-01-01')
+    # end_date = start_date + pd.DateOffset(days=365)
+    # datetime_index = pd.date_range(start=start_date, end=end_date, freq='1H')
+    # datetime_index = datetime_index[:-1]
+
+
+    # # Create simulated and original data for 30 time series
+    # n_timeseries = 30
+    # n_rows = len(datetime_index)
+
+    # simulated_data = np.random.normal(loc=1000, scale=3000, size=(n_rows, n_timeseries))
+    # original_data = np.random.normal(loc=1000, scale=3000, size=(n_rows, n_timeseries))
+
+    # # Create DataFrame
+    # simulated_df = pd.DataFrame(simulated_data, index=datetime_index)
+    # original_df = pd.DataFrame(original_data, index=datetime_index)
+
+    # # Set all values below 0 to 0
+    # simulated_df[simulated_df < 0] = 0
+    # original_df[original_df < 0] = 0
+
+    path = os.path.join(os.path.abspath('./validation/counties'), 'G3500090_Mixed-Dry', 'households', 'G3500090_Mixed-Dry_results.csv')
+    df = pd.read_csv(path, index_col=0, parse_dates=True)
+
+    # Make each row the sum of the previous rows
+    df = df.cumsum(axis=0)
+    print(df)
+    exit()
+
+    #Next steps: Continue creating this plot based on the dummy data.
+
+    # Add a ratio column for each column and group them under the correct first level column
+    for column in data.columns.levels[0]:
+        data[(column, 'Ratio')] = data[(column, 'Simulated')] / data[(column, 'Original')]
+
+    # Get the maximum value of each 'Original' column
+    max_values = data.xs('Original', level=1, axis=1).max(axis=0)
+
+    print(data.iloc[:5, :].to_string())
+    print(data.iloc[-5:, :].to_string())
+
+    # Divide both 'Original' and 'Simulated' columns by the corresponding maximum values
+    for column in data.columns.levels[0]:
+        data[(column, 'Simulated')] /= max_values[column]
+        data[(column, 'Original')] /= max_values[column]
+
+    print(data.iloc[:5, :].to_string())
+    print(data.iloc[-5:, :].to_string())
+
+    # data.columns = pd.MultiIndex.from_product([data.columns.levels[0], ['Original', 'Simulated', 'Ratio']])
+
+
+    # Use the ratio columns to calculate the median, upper quartile, lower quartile, upper 95%, and lower 5%
+    # Calculate the statistics for each row using the ratio columns
+    data[('Stats', 'Lower 5%')] = data.xs('Ratio', level=1, axis=1).quantile(0.05, axis=1)
+    data[('Stats', 'Lower Quartile')] = data.xs('Ratio', level=1, axis=1).quantile(0.25, axis=1)
+    data[('Stats', 'Median')] = data.xs('Ratio', level=1, axis=1).median(axis=1)
+    data[('Stats', 'Upper Quartile')] = data.xs('Ratio', level=1, axis=1).quantile(0.75, axis=1)
+    data[('Stats', 'Upper 95%')] = data.xs('Ratio', level=1, axis=1).quantile(0.95, axis=1)
+
+    # Calculate the statistics for each row based on the 'Original' and 'Simulated' columns
+    data[('Stats', 'Lower 5% (Original)')] = data.xs('Original', level=1, axis=1).quantile(0.05, axis=1)
+    data[('Stats', 'Lower Quartile (Original)')] = data.xs('Original', level=1, axis=1).quantile(0.25, axis=1)
+    data[('Stats', 'Median (Original)')] = data.xs('Original', level=1, axis=1).median(axis=1)
+    data[('Stats', 'Upper Quartile (Original)')] = data.xs('Original', level=1, axis=1).quantile(0.75, axis=1)
+    data[('Stats', 'Upper 95% (Original)')] = data.xs('Original', level=1, axis=1).quantile(0.95, axis=1)
+
+    data[('Stats', 'Lower 5% (Simulated)')] = data.xs('Simulated', level=1, axis=1).quantile(0.05, axis=1)
+    data[('Stats', 'Lower Quartile (Simulated)')] = data.xs('Simulated', level=1, axis=1).quantile(0.25, axis=1)
+    data[('Stats', 'Median (Simulated)')] = data.xs('Simulated', level=1, axis=1).median(axis=1)
+    data[('Stats', 'Upper Quartile (Simulated)')] = data.xs('Simulated', level=1, axis=1).quantile(0.75, axis=1)
+    data[('Stats', 'Upper 95% (Simulated)')] = data.xs('Simulated', level=1, axis=1).quantile(0.95, axis=1)
+
+    # Fill NaN values with 0
+    data = data.fillna(0)
+
+    print(data.iloc[:5, :].to_string())
+    print(data.iloc[-5:, :].to_string())
+
+    # Create the figure and axis
+    plt.figure(figsize=(10, 10))
+    ax = plt.gca()
+
+    # Define a colormap with different shades of orange
+    n_shades = 4
+    cmap = plt.get_cmap('Oranges', n_shades)
+
+    # Plot the custom boxplot-like representation
+    stats = ['Lower 5%', 'Lower Quartile', 'Median', 'Upper Quartile', 'Upper 95%']
+    for i, stat in enumerate(stats):
+        color = cmap(i / (n_shades - 1))  # Get the color from the colormap
+        plt.plot(data[('Stats', f'{stat} (Original)')], data[('Stats', f'{stat} (Simulated)')], color='black', linewidth=1, label=stat)
+        if i < n_shades:
+            if 1 < i < 3:
+                alpha = 1
+            else:
+                alpha = 0.5
+            plt.fill_between(data[('Stats', f'{stat} (Original)')], data[('Stats', f'{stats[i]} (Simulated)')], data[('Stats', f'{stats[i + 1]} (Simulated)')], color='Orange', alpha=alpha)
+
+    # Plot the line from (0,0) to (1,1) for the ratio
+    plt.plot([0, 1], [0, 1], color='black', linestyle='dashed', label='Ratio of 1', linewidth=2)
+
+    # Set axis labels and title
+    plt.xlabel('Normalized Heating Demand (Original)')
+    plt.ylabel('Ratio (Simulated / Original)')
+    plt.title('Comparison of Simulated and Original Heating Ratios over Time')
+
+    # Set x-axis and y-axis limits
+    plt.xlim(0, 1.1)
+    plt.ylim(0, 1.1)
+
+    # Add a legend
+    plt.legend()
+
+    # Show the grid
+    plt.grid(True)
+
+    # Display the plot
+    plt.tight_layout()
+    plt.show()
