@@ -3,9 +3,9 @@ import pandas as pd
 from teaser.project import Project
 import json
 from entise.constants.objects import Objects
+from entise.constants.constants import Constants 
 
 
-FLOOR_HEIGHT=2.7
 
 def generate_buildings():
 
@@ -41,7 +41,7 @@ def generate_buildings():
             name=f"{row["bldg_id"]}_{row["year"]}",
             year_of_construction=row["year"],
             number_of_floors=row["in.geometry_stories"],
-            height_of_floors=FLOOR_HEIGHT,
+            height_of_floors=Constants.DEFAULT_HEIGHT.value,
             net_leased_area=row["in.sqft"]*0.09290304,
             inner_wall_approximation_approach="teaser_default",#typical length * height of floors + 2 * typical width * height of floors
             )
@@ -149,12 +149,9 @@ def generate_windows_tipology():
 
             # Compute transmittance (U-value) if thermal_conduc & thickness available
             # U = k / thickness, in W/m²K
-            k = material.get("thermal_conduc", None)
-            thickness = layer.get("thickness", None)
-            transmittance = None
-            if k and thickness and thickness > 0:
-                transmittance = k / thickness  # [W/m²·K]
-
+            #k = material.get("thermal_conduc", None)
+            #thickness = layer.get("thickness", None)
+            transmittance=win_info.get("g_value")
             area= win_info.get("area")
             tilt=win_info.get("tilt")
             orientation=win_info.get("orientation")
@@ -219,8 +216,6 @@ def estimate_window_areas_nrel():
 
     results = []
 
-    story_height = FLOOR_HEIGHT  # meters
-
     # Orientation mapping for façades (assuming 'orientation' is main façade)
     orientation_map = {
     "North": 0,
@@ -249,7 +244,7 @@ def estimate_window_areas_nrel():
 
         # Approximate building geometry
         L = W = numpy.sqrt(floor_area / stories)
-        wall_area = L * (stories * story_height)
+        wall_area = L * (stories * Constants.DEFAULT_HEIGHT.value)
 
         # Main orientation angle
         main_angle = orientation_map.get(main_orientation[:2], 0)
@@ -277,4 +272,4 @@ def estimate_window_areas_nrel():
     df_windows.to_csv("data/validation/tipology/windows_nrel.csv",index=False)
 
 
-estimate_window_areas_nrel()
+#estimate_window_areas_nrel()

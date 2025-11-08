@@ -140,9 +140,7 @@ def generate_min_max_temperatures_schedule():
 
 
 #DERIVE OCCUPANCY SCHEDULE
-def derive_occupancy_schedule():
-
-    global objects
+def derive_occupancy_schedule(objects:pd.DataFrame):
 
     df_summary=pd.DataFrame(columns=[Objects.ID,"method",f"average_{Types.OCCUPANCY}"])
     
@@ -285,8 +283,11 @@ def derive_solar_gains(objects,reduce_area,reduce_shading):
     print(f"Solar Gains")
     objects=objects.copy()
     solar_gains_generator = SolarGainsPVLib()
+    
     hot_months=[4,5,6,7,8,9]
-    cold_months=[1,2,3,10,11,12]
+    x = numpy.linspace(0, numpy.pi, len(hot_months))
+    month_scale = dict(zip(hot_months, 1 - (1 - reduce_shading) * numpy.sin(x)))
+
     for idx,obj in objects.iterrows():
         data={}
         
@@ -298,15 +299,16 @@ def derive_solar_gains(objects,reduce_area,reduce_shading):
         
         df_windows=get_windows(obj)
 
-        df_windows[Objects.AREA]=df_windows[Objects.AREA]
-        df_windows[Columns.SHADING]=df_windows[Columns.SHADING]
-        df_windows[Columns.TRANSMITTANCE]=0.75
         data[Objects.WINDOWS]=df_windows
         
         df_solar_gains=solar_gains_generator.generate(obj=obj,data=data)
         df_solar_gains=df_solar_gains.reset_index()
-        df_solar_gains.loc[df_solar_gains["datetime"].dt.month.isin(hot_months),Objects.GAINS_SOLAR]*=(reduce_area*reduce_shading)
-        #df_solar_gains.loc[df_solar_gains["datetime"].dt.month.isin(cold_months),Objects.GAINS_SOLAR]*=(reduce_area*(reduce_shading+0.5))
+        #Decrease solar gain 
+        df_solar_gains.loc[
+            df_solar_gains["datetime"].dt.month.isin(hot_months),
+            Objects.GAINS_SOLAR
+        ] *= df_solar_gains["datetime"].dt.month.map(month_scale)
+
         df_solar_gains.to_csv(f"{solar_gains_folder}/{obj[Objects.ID]}_{obj["year"]}.csv",index=False)
         
 
@@ -441,6 +443,8 @@ def summarize_hvac(objects,method:str=Columns.OCCUPANCY_GEOMA):
 
         df_hvac=pd.read_csv(f"{hvac_folder}/{method}/{obj_id}_{obj_year}.csv")
         df_hvac_real=pd.read_csv(f"{demand_folder}/{obj_id}.csv")
+
+        
 
         df_summary.at[idx,Objects.ID] = obj_id
         df_summary.at[idx, "method"] = method 
@@ -611,20 +615,18 @@ def set_datetime_index(df):
     return df
 
 def get_real_demand_files():
-    global objects
+    objects = pd.read_csv("data/validation/objects_entise.csv")
     objects = objects.drop_duplicates(subset="id", keep="first")
     cz_folders=os.listdir(real_demand_folder)
 
     for idx,obj in objects.iterrows():
         
-        #if not obj[Columns.ID]==80450:
-        #    continue
 
         cz_code=str(obj["filename"]).split("_")[0]
         cz_folder=next((f for f in cz_folders if f.split("_")[0] == cz_code), None)
         real_demand=pd.read_csv(f"{real_demand_folder}/{cz_folder}/households/{obj[Columns.ID]}/{obj[Columns.ID]}_timeseries_adjusted.csv")
         
-        print(f"Processing ID: {obj[Columns.ID]}, year:{obj["year"]}")
+        print(f"Processing ID: {obj[Columns.ID]}")
         
         try:
             raw_demand_parquet=pd.read_parquet(f"{real_demand_folder}/{cz_folder}/households/{obj[Columns.ID]}/{obj[Columns.ID]}_timeseries.parquet")
@@ -670,6 +672,26 @@ def get_real_demand_files():
         lower_heating,upper_heating = real_demand[f"{Types.HEATING}_{Columns.DEMAND}[W]"].quantile([0.05, 0.999])
         real_demand[f"{Types.HEATING}_{Columns.DEMAND}[W]"] =real_demand[f"{Types.HEATING}_{Columns.DEMAND}[W]"].clip(upper=upper_heating) 
         real_demand.drop(real_demand.tail(1).index,inplace=True)
+
+
+        #REMOVE EXCESIVELY HIGH VALUES
+        clip_values = {
+            71009: 10000,
+            130744: 15000,
+            332001: 12000,
+            418445: 20000,
+            482749: 10000,
+            525662: 6000,
+        }
+
+        
+        col = f"{Types.HEATING}_{Columns.DEMAND}[W]"
+        clip_val = clip_values.get(obj[Columns.ID])
+
+        if clip_val is not None:
+            real_demand[col] = real_demand[col].clip(upper=clip_val)
+            print(f"⚠️ Clipping heating demand value for building ID {obj[Columns.ID]}")
+            
         real_demand.to_csv(f"{demand_folder}/{obj[Columns.ID]}.csv",index=False)
 
 #get_real_demand_files()
@@ -714,7 +736,6 @@ def calculate_fit_score(df,method=Columns.OCCUPANCY_GEOMA,name=""):
       .reset_index(drop=True)
     )
     
-    df.to_csv(f"results/fit_score_{method}_{name}.csv",index=False)
     df_best_fit_score.to_csv(f"results/best_fit_score_{method}_{name}.csv",index=False)
     df_best_heating_score.to_csv(f"results/best_heating_score_{method}_{name}.csv",index=False)
     df_best_cooling_score.to_csv(f"results/best_cooling_score_{method}_{name}.csv",index=False)

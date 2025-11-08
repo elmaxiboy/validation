@@ -4,6 +4,7 @@ import os
 from entise.constants.objects import Objects
 from entise.constants.columns import Columns
 from entise.constants.ts_types import Types
+from entise.constants.constants import Constants
 
 def filter_single_family_detached():
 
@@ -109,9 +110,7 @@ def filter_single_family_detached():
     # Filter the dataset
     df_combined = df_combined[relevant_columns]
 
-    # Optional: inspect
-    # Show result
-    df_combined.to_csv("data/validation/single_family_detached.csv")
+    df_combined.to_csv("data/validation/single_family_detached.csv",index=False)
 
 def get_simulated_years():
     simulated_years_path = "C:/Users/escobarm/Desktop/thesis/validation_data/counties"
@@ -163,7 +162,11 @@ def copy_demand_files():
         except:
             demand_path=f"{foldername_elements[0]}_{foldername_elements[1]}/households/{bldg["id"]}/{bldg["id"]}_timeseries_adjusted.csv"
 
+        
+
         demand_file=pd.read_csv(path+"/"+demand_path)
+
+
         demand_file.to_csv(save_path+"/"+str(bldg["id"])+".csv",index=False)
 
 
@@ -182,7 +185,6 @@ def to_object_file():
            "in.cooling_setpoint_offset_period",
            "in.window_areas",
            "filename",
-           "in.geometry_stories",
            "in.weather_file_latitude",
            "in.weather_file_longitude",
            "in.sqft",
@@ -232,6 +234,8 @@ def to_object_file():
     df=df.loc[df[Objects.TEMP_MIN]<df[Objects.TEMP_MAX]]
 
     df[Objects.AREA] = pd.to_numeric(df[Objects.AREA])*0.09290304
+
+    df[Objects.HEIGHT] = df["stories"]*Constants.DEFAULT_HEIGHT.value
 
     #Extract climate zone
 

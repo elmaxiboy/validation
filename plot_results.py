@@ -590,7 +590,7 @@ def barplot_ranking_fit_score(method,name):
 
     df["climate_zone"] = pd.Categorical(df["climate_zone"], categories=climate_order, ordered=True)
 
-    df["fit_score_log"] = np.log(df["fit_score"])
+    df["fit_score_log"] = (df["fit_score"])*100
 
     plt.figure(figsize=(8, 5))
     g = sns.barplot(
@@ -601,7 +601,7 @@ def barplot_ranking_fit_score(method,name):
         order=climate_order)
     
     g.set_xlabel("Climate Zone")
-    g.set_ylabel("log(Fit Score)")
+    g.set_ylabel("Relative Error %")
     g.set_title(f"Overall Fit Score by Climate Zone — {method}")
     plt.legend(title="Building year")
     plt.tight_layout()
@@ -787,7 +787,7 @@ def hvac_loads_comparison(objects,res_factor,cap_factor,solar_gains_factor,metho
         fig, ax1 = plt.subplots(figsize=(12, 5))
 
         ax2=ax1.twinx()
-        #ax1.plot(df_solar_gains[Columns.DATETIME],df_solar_gains[Objects.GAINS_SOLAR]/1000, color="tab:orange", label="Solar Gains",alpha=0.5)
+        ax1.plot(df_solar_gains[Columns.DATETIME],df_solar_gains[Objects.GAINS_SOLAR]/1000, color="gold", label="Solar Gains",alpha=0.5,zorder=1)
         ax2.plot(df_weather[Columns.DATETIME],df_weather[Columns.TEMP_AIR],color="tab:orange", label="Air Temperature",alpha=0.5,zorder=1)
         ax1.plot(df_hvac_real[Columns.DATETIME], df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"]/1000, color="darkred", label="Real Heating Load",zorder=2)
         ax1.plot(df_hvac_real[Columns.DATETIME], df_hvac_real[f"{Types.COOLING}_{Columns.DEMAND}[W]"]/1000, color="royalblue", label="Real Cooling Load",zorder=2)

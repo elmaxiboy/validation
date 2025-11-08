@@ -5,6 +5,7 @@ data/validation/tipology
 data/validation/occupancy
 data/validation/solar_gains
 data/validation/ventilation
+data/validation/temperature_setpoints
 results
 
 
