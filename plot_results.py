@@ -871,7 +871,225 @@ def hvac_load_real(method:str=Columns.OCCUPANCY_GEOMA,climate_zone:str="marine")
         plt.savefig(f"results/images/timeseries/{method}/{climate_zone}/{id}_{year}_real_hvac_.png", dpi=300)
         plt.close
 
-def normalized_boxplot():
+
+def normalized_boxplot(df: pd.DataFrame):
+    """
+    Create a normalized boxplot comparing simulated vs real HVAC demand (heating, cooling, or combined),
+    normalized by total demand (sum over time).
+    """
+    
+
+    climate_zones=df["climate_zone"].unique()
+
+    for cz in climate_zones:
+        
+        df_cz = df.copy()
+        
+        df_cz=df_cz.loc[df_cz["climate_zone"]==cz]
+
+        ids=df_cz["id"].unique()
+
+        for id in ids:
+
+            df_cz_id=df_cz.copy()
+
+            df_cz_id=df_cz_id.loc[df_cz_id["id"]==id]
+
+            year=df_cz["year"].unique()[0]
+
+            df_cz_id["hvac_simulated"]=df_cz_id[f"simulated_{Types.HEATING}_{Columns.DEMAND}[W]"] + df_cz_id[f"simulated_{Types.COOLING}_{Columns.DEMAND}[W]"]
+            df_cz_id["hvac_real"]=df_cz_id[f"real_{Types.HEATING}_{Columns.DEMAND}[W]"] + df_cz_id[f"real_{Types.COOLING}_{Columns.DEMAND}[W]"]
+
+            hvac_real_sum           =   df_cz_id["hvac_real"].sum()
+            hvac_simulated_sum      =   df_cz_id["hvac_simulated"].sum()
+            heating_real_sum        =   df_cz_id[f"real_{Types.HEATING}_{Columns.DEMAND}[W]"].sum()
+            heating_simulated_sum   =   df_cz_id[f"simulated_{Types.HEATING}_{Columns.DEMAND}[W]"].sum()
+            cooling_real_sum        =   df_cz_id[f"real_{Types.COOLING}_{Columns.DEMAND}[W]"].sum()
+            cooling_simulated_sum   =   df_cz_id[f"simulated_{Types.COOLING}_{Columns.DEMAND}[W]"].sum()
+
+            df_cz_id["hvac_simulated_cum_sum"]     =   (df_cz_id["hvac_simulated"].cumsum())/hvac_simulated_sum
+            df_cz_id["hvac_real_cum_sum"]          =   (df_cz_id["hvac_real"].cumsum())/hvac_real_sum
+            df_cz_id["heating_simulated_cum_sum"]  =   (df_cz_id[f"simulated_{Types.HEATING}_{Columns.DEMAND}[W]"].cumsum())/heating_simulated_sum
+            df_cz_id["heating_real_cum_sum"]       =   (df_cz_id[f"real_{Types.HEATING}_{Columns.DEMAND}[W]"].cumsum())/heating_real_sum
+            df_cz_id["cooling_simulated_cum_sum"]  =   (df_cz_id[f"simulated_{Types.COOLING}_{Columns.DEMAND}[W]"].cumsum())/cooling_simulated_sum
+            df_cz_id["cooling_real_cum_sum"]       =   (df_cz_id[f"real_{Types.COOLING}_{Columns.DEMAND}[W]"].cumsum())/cooling_real_sum
+
+            fig, ax1 = plt.subplots(figsize=(12, 5))
+
+            ax1.plot(df_cz_id["hvac_simulated_cum_sum"], df_cz_id["hvac_real_cum_sum"], label="Total HVAC")
+            ax1.plot(df_cz_id["heating_simulated_cum_sum"], df_cz_id["heating_real_cum_sum"], color="red",label="Heating")
+            ax1.plot(df_cz_id["cooling_simulated_cum_sum"], df_cz_id["cooling_real_cum_sum"], color="blue",label="Cooling")
+
+            ax1.plot([0, 1], [0, 1], "k--", label="Perfect Match")
+
+            plt.xlabel(f"Normalized Simulated Demand (by total)")
+            plt.ylabel(f"Normalized Real Demand (by total)")
+            plt.title(f"Normalized Comparison by Total Demand. ID: {id}, Climate Zone: {cz}, Year: {year}")
+            plt.xlim(0, 1.1)
+            plt.ylim(0, 1.1)
+            plt.legend()
+            plt.grid(True)
+            plt.tight_layout()
+            plt.savefig(f"normalized_boxplots_{cz}_{id}.png")
+            plt.close()
+
+def normalized_boxplot_2(df: pd.DataFrame):
+    """
+    Create normalized comparison plots (one per climate zone)
+    comparing simulated vs real HVAC demand (heating + cooling),
+    normalized by total demand (sum over time).
+    """
+
+    climate_zones = df["climate_zone"].unique()
+
+    for cz in climate_zones:
+        # Filter data for this climate zone
+        df_cz = df[df["climate_zone"] == cz].copy()
+
+        fig, ax = plt.subplots(figsize=(10, 6))
+
+        ids = df_cz["id"].unique()
+
+        for id in ids:
+            df_cz_id = df_cz[df_cz["id"] == id].copy()
+
+            # Compute HVAC real & simulated
+            df_cz_id["hvac_simulated"] = (
+                df_cz_id[f"simulated_{Types.HEATING}_{Columns.DEMAND}[W]"]
+                + df_cz_id[f"simulated_{Types.COOLING}_{Columns.DEMAND}[W]"]
+            )
+            df_cz_id["hvac_real"] = (
+                df_cz_id[f"real_{Types.HEATING}_{Columns.DEMAND}[W]"]
+                + df_cz_id[f"real_{Types.COOLING}_{Columns.DEMAND}[W]"]
+            )
+
+            # Normalize cumulative sums
+            hvac_sim_sum = df_cz_id["hvac_simulated"].sum()
+            hvac_real_sum = df_cz_id["hvac_real"].sum()
+
+            if hvac_sim_sum == 0 or hvac_real_sum == 0:
+                continue  # skip empty or invalid buildings
+
+            df_cz_id["hvac_simulated_cum_sum"] = (
+                df_cz_id["hvac_simulated"].cumsum() / hvac_sim_sum
+            )
+            df_cz_id["hvac_real_cum_sum"] = (
+                df_cz_id["hvac_real"].cumsum() / hvac_real_sum
+            )
+
+            # Plot building line
+            ax.plot(
+                df_cz_id["hvac_simulated_cum_sum"],
+                df_cz_id["hvac_real_cum_sum"],
+                label=f"Building {id}",
+                alpha=0.7,
+            )
+
+        # Add perfect match line
+        ax.plot([0, 1], [0, 1], "k--", label="Perfect Match")
+
+        ax.set_xlabel("Normalized Simulated HVAC Demand (by total)")
+        ax.set_ylabel("Normalized Real HVAC Demand (by total)")
+        ax.set_title(f"Normalized HVAC Comparison — Climate Zone: {cz}, Year")
+        ax.set_xlim(0, 1.05)
+        ax.set_ylim(0, 1.05)
+        ax.legend(bbox_to_anchor=(1.05, 1), loc="upper left", fontsize="small")
+        ax.grid(True)
+        plt.tight_layout()
+
+        plt.savefig(f"normalized_boxplot_{cz}.png", dpi=300)
+        plt.close()
+
+
+
+def normalized_boxplot_3(df: pd.DataFrame):
+    """
+    Create normalized comparison plots (one per climate zone)
+    comparing simulated vs real HVAC demand (heating + cooling),
+    normalized by total demand (sum over time), with quartile analysis.
+    """
+
+    climate_zones = df["climate_zone"].unique()
+
+    for cz in climate_zones:
+        df_cz = df[df["climate_zone"] == cz].copy()
+        ids = df_cz["id"].unique()
+        year = df_cz["year"].unique()[0]
+
+        # Store all normalized series per building
+        hvac_simulated_all = []
+        hvac_real_all = []
+
+        for id in ids:
+            df_cz_id = df_cz[df_cz["id"] == id].copy()
+
+            df_cz_id["hvac_simulated"] = (
+                df_cz_id[f"simulated_{Types.HEATING}_{Columns.DEMAND}[W]"]
+                + df_cz_id[f"simulated_{Types.COOLING}_{Columns.DEMAND}[W]"]
+            )
+            df_cz_id["hvac_real"] = (
+                df_cz_id[f"real_{Types.HEATING}_{Columns.DEMAND}[W]"]
+                + df_cz_id[f"real_{Types.COOLING}_{Columns.DEMAND}[W]"]
+            )
+
+            hvac_sim_sum = df_cz_id["hvac_simulated"].sum()
+            hvac_real_sum = df_cz_id["hvac_real"].sum()
+            if hvac_sim_sum == 0 or hvac_real_sum == 0:
+                continue
+
+            df_cz_id["hvac_sim_cum_norm"] = df_cz_id["hvac_simulated"].cumsum() / hvac_sim_sum
+            df_cz_id["hvac_real_cum_norm"] = df_cz_id["hvac_real"].cumsum() / hvac_real_sum
+
+            # Interpolate to 100 uniform points for consistent quantile calculation
+            x_uniform = np.linspace(0, 1, 100)
+            sim_interp = np.interp(x_uniform, np.linspace(0, 1, len(df_cz_id)), df_cz_id["hvac_sim_cum_norm"])
+            real_interp = np.interp(x_uniform, np.linspace(0, 1, len(df_cz_id)), df_cz_id["hvac_real_cum_norm"])
+
+            hvac_simulated_all.append(sim_interp)
+            hvac_real_all.append(real_interp)
+
+        if not hvac_simulated_all:
+            continue
+
+        hvac_simulated_all = np.array(hvac_simulated_all)
+        hvac_real_all = np.array(hvac_real_all)
+
+        # Compute quantiles across buildings for each x value
+        quantiles_sim = np.quantile(hvac_simulated_all, [0.05, 0.25, 0.5, 0.75, 0.95], axis=0)
+        quantiles_real = np.quantile(hvac_real_all, [0.05, 0.25, 0.5, 0.75, 0.95], axis=0)
+
+        # Plot quartile bands and median line
+        fig, ax = plt.subplots(figsize=(10, 6))
+
+        # Fill between quartiles (shaded regions)
+        ax.fill_between(
+            quantiles_sim[0], quantiles_real[0], quantiles_real[4],
+            color="orange", alpha=0.2, label="5–95% range"
+        )
+        ax.fill_between(
+            quantiles_sim[1], quantiles_real[1], quantiles_real[3],
+            color="orange", alpha=0.4, label="25–75% quartile"
+        )
+
+        # Median line
+        ax.plot(quantiles_sim[2], quantiles_real[2], color="darkred", lw=2, label="Median")
+
+        # Perfect match line
+        ax.plot([0, 1], [0, 1], "k--", label="Perfect Match")
+
+        ax.set_xlabel("Normalized Simulated HVAC Demand (by total)")
+        ax.set_ylabel("Normalized Real HVAC Demand (by total)")
+        ax.set_title(f"HVAC Normalized Quartile Comparison — Climate Zone: {cz}")
+        ax.set_xlim(0, 1.05)
+        ax.set_ylim(0, 1.05)
+        ax.legend(loc="lower right")
+        ax.grid(True)
+        plt.tight_layout()
+        plt.savefig(f"normalized_boxplot_quartiles_{cz}.png", dpi=300)
+        plt.close()
+
+
+def normalized_boxplot_markus():
 
     """Creates a plot that compares the simulated and original heating demand over time."""
     import os
