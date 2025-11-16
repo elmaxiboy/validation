@@ -12,7 +12,7 @@ def filter_single_family_detached():
     # Define all filtering rules here:
     filter_rules = {
         "in.geometry_building_type_recs": ["Single-Family Detached"],
-        "in.heating_fuel": ["Electricity"],
+        #"in.heating_fuel": ["Electricity"],
         "in.misc_pool": [np.nan],
         "in.vacancy_status":["Occupied"]
     }
@@ -117,7 +117,7 @@ def get_simulated_years():
     climate_zone_folders = os.listdir(simulated_years_path)
     print(climate_zone_folders)
 
-    df = pd.read_csv("data/validation/single_family_detached.csv",index_col=0)
+    df = pd.read_csv("data/validation/single_family_detached.csv")
     df_with_years = pd.DataFrame()
 
     for idx, row in df.iterrows():
@@ -246,7 +246,8 @@ def to_object_file():
     df=df.loc[pd.to_numeric(df["year"])!=2016]
     
     df.to_csv("data/validation/objects_entise.csv",index=False)
-
+    
+    return df
 
 def get_unique_offset_periods():
     df= pd.read_csv("data/validation/objects_entise.csv")

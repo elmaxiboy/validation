@@ -1,12 +1,18 @@
 import os
 from matplotlib import pyplot as plt
 import matplotlib
+from matplotlib.colors import ListedColormap
+from matplotlib.lines import Line2D
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 import seaborn as sns
 from entise.constants import Types
 from entise.constants.columns import Columns
 from entise.constants.objects import Objects
+from matplotlib.patches import Patch
+from mpl_toolkits.basemap import Basemap
+
 matplotlib.use("Agg")
 
 
@@ -71,10 +77,7 @@ def digest_summary():
     g.savefig("barplot_heating_vs_cooling_demand_without_big_houses.png", dpi=300)
     plt.close()
 
-def plot_bar_plot_resistance_capacitance():
-    df = pd.read_csv("results/hvac_summary_geoma.csv")
-    df["climate_zone"] = df["filename"].str.replace(".csv", "", regex=False).str.split("_").str[1:].str.join(" ")
-
+def plot_bar_plot_resistance_capacitance(df):
 
     climate_zones = df["climate_zone"].unique()
 
@@ -172,43 +175,82 @@ def box_plot():
     plt.close()
 
 
-def distribution_thermal_props(thermal_prop=Objects.RESISTANCE,mode:str="box"):
+def distribution_thermal_props(df, thermal_prop=Objects.RESISTANCE, mode: str = "box"):
 
-    df = pd.read_csv("results/hvac_summary_geoma.csv")
-    
-    df =df.loc[df[Objects.AREA]<500] #remove mansions
-    
-    df["climate_zone"] = df["filename"].str.replace(".csv", "", regex=False).str.split("_").str[1:].str.join(" ")
+    match thermal_prop:
+        case Objects.RESISTANCE:
+            color = "tab:green"
+            title = "Resistance"
+        case Objects.CAPACITANCE:
+            color = "tab:purple"
+            title = "Capacitance"
 
-    # Define desired order
-    climate_order = ["very cold", "cold", "marine", "hot humid", "mixed dry","hot dry"]
+    # Remove mansions
+    df = df.loc[df[Objects.AREA] < 500]
 
-    # Convert to categorical with order
+    # ---- NEW YEAR CATEGORIES ----
+    df["year group"] = pd.cut(
+        df["year"],
+        bins=[1900, 1950, 2000, 9999],
+        labels=["1900–1950", "1950–2000", "2000+"],
+        include_lowest=True
+    )
+
+    # Climate order
+    climate_order = ["very cold", "cold", "marine", "hot humid", "mixed dry", "hot dry"]
     df["climate_zone"] = pd.Categorical(df["climate_zone"], categories=climate_order, ordered=True)
-    
-    # Create faceted boxplots by year
+
+    # --------------------------------------------------
+    # INLINE OUTLIER FILTER (IQR per climate zone & year group)
+    # --------------------------------------------------
+    cleaned = []
+    for (cz, yr), group in df.groupby(["climate_zone", "year group"], dropna=False):
+        if len(group) < 3:
+            cleaned.append(group)
+            continue
+        
+        q1 = group[thermal_prop].quantile(0.25)
+        q3 = group[thermal_prop].quantile(0.75)
+        iqr = q3 - q1
+        
+        lower = q1 - 1.5 * iqr
+        upper = q3 + 1.5 * iqr
+        
+        filtered = group[(group[thermal_prop] >= lower) & (group[thermal_prop] <= upper)]
+        cleaned.append(filtered)
+
+    df = pd.concat(cleaned, ignore_index=True)
+
+    # --------------------------------------------------
+    # Plot using YEAR GROUP instead of original year
+    # --------------------------------------------------
     g = sns.catplot(
         data=df,
         x="climate_zone",
         y=thermal_prop,
-        hue="stories",
-        col="year",
+        col="year group",
+        col_wrap=3,
         kind=mode,
         height=4,
-        aspect=1.2
+        aspect=1.2,
+        color=color,
     )
-    
-    for ax in g.axes.flatten():
-      ax.set_xticklabels(climate_order, rotation=45, ha="right")
-      ax.set_xlabel("Climate Zone")
-      ax.set_ylabel(thermal_prop)
 
-    g.figure.subplots_adjust(top=0.9)
-    g.figure.suptitle(f"{thermal_prop} by Climate Zone and Year")
-    
-    # Save the figure
+    for ax in g.axes.flatten():
+        ax.set_xticklabels(climate_order, rotation=45, ha="right", fontsize=13)
+        ax.set_xlabel("")
+        ax.set_ylabel(thermal_prop, fontsize=15)
+
+    g.figure.subplots_adjust(top=0.85)
+    g.figure.suptitle(
+        f"{title} by Climate Zone and Construction Period",
+        fontsize=18
+    )
+
     g.savefig(f"{mode}plot_{thermal_prop}.png", dpi=300)
     plt.close()
+
+
 
 def distribution_area(mode:str="box"):
 
@@ -581,6 +623,9 @@ def barplot_ranking_fit_score(method,name):
     
     df = pd.read_csv(f"results/best_fit_score_{method}_{name}.csv")
 
+    #Filter outliers
+    df=df.loc[df["heating_demand_rel_error"]<7]
+    
     climate_order = (
         df.groupby("climate_zone")["fit_score"]
           .mean()
@@ -590,13 +635,12 @@ def barplot_ranking_fit_score(method,name):
 
     df["climate_zone"] = pd.Categorical(df["climate_zone"], categories=climate_order, ordered=True)
 
-    df["fit_score_log"] = (df["fit_score"])*100
 
     plt.figure(figsize=(8, 5))
     g = sns.barplot(
         data=df,
         x="climate_zone",
-        y="fit_score_log",
+        y="fit_score",
         hue="year",
         order=climate_order)
     
@@ -605,13 +649,12 @@ def barplot_ranking_fit_score(method,name):
     g.set_title(f"Overall Fit Score by Climate Zone — {method}")
     plt.legend(title="Building year")
     plt.tight_layout()
-    plt.savefig(f"results/images/barplots/fit_score_{method}.png", dpi=300)
+    plt.savefig(f"fit_score_{method}.png", dpi=300)
     plt.close()
 
-################## PER ERROR COMPONENT ###########################
+    ################## PER ERROR COMPONENT (WIDE LAYOUT) ###########################
 
-
-    # Melt and prepare dataframe (same as before)
+    # Columns to melt
     rel_error_cols = ["heating_demand_rel_error", "cooling_demand_rel_error"]
 
     df_melted = df.melt(
@@ -621,146 +664,69 @@ def barplot_ranking_fit_score(method,name):
         value_name="relative_error"
     )
 
-    df_melted["Relative Error (%)"] = df_melted["relative_error"].abs()*100
+    # Convert to percentage
+    df_melted["Relative Error (%)"] = df_melted["relative_error"].abs() * 100
 
-    df_melted["type"] = df_melted["metric"].apply(
+    # Heating / Cooling labels
+    df_melted["Type"] = df_melted["metric"].apply(
         lambda x: "Heating [kWh]" if "heating" in x.lower() else "Cooling [kWh]"
     )
 
+    # Colors
     palette = {"Heating [kWh]": "#E74C3C", "Cooling [kWh]": "#3498DB"}
 
-    # Create FacetGrid
-    g = sns.FacetGrid(
-        df_melted,
-        row="climate_zone",
-        row_order=climate_order,
-        sharex=True,
-        height=2.2,
-        aspect=2,
-        despine=False
+    # Create a single-row subplot grid with one column per climate zone
+    n_cols = len(climate_order)
+    fig, axes = plt.subplots(
+        nrows=1,
+        ncols=n_cols,
+        figsize=(3 * n_cols, 5),
+        sharey=True
     )
 
-    # Draw boxplots
-    g.map_dataframe(
-        sns.boxplot,
-        y="type",  # Use type as y for boxplot orientation
-        x="Relative Error (%)",
-        hue="type",
-        palette=palette,
-        orient="h",
-        showfliers=False
-    )
+    if n_cols == 1:
+        axes = [axes]  # ensure iterability
 
-    # Remove y-axis ticks and labels to clean up
-    for ax in g.axes.flat:
-        ax.axvline(0, color="black", linestyle="--", linewidth=1)
-        ax.set_ylabel("")
-        ax.set_yticks([])  # hide y-axis ticks
-        ax.legend_.remove() if ax.get_legend() else None  # remove individual legends
+    for ax, cz in zip(axes, climate_order):
+        subset = df_melted[df_melted["climate_zone"] == cz]
 
-    # Create a proper unified legend manually
-    from matplotlib.patches import Patch
-    # Set main title first
-    g.figure.suptitle("Heating and Cooling Errors", fontsize=16)
+        sns.boxplot(
+            data=subset,
+            x="Type",              # vertical boxplots
+            y="Relative Error (%)",
+            palette=palette,
+            ax=ax,
+            showfliers=False
+        )
 
-    # Adjust layout to leave space for legend and title
-    plt.tight_layout(rect=[0, 0, 1, 0.88])  # leave top ~12% for title + legend
+        ax.set_title(f"{cz}")
+        ax.set_xlabel("")
 
-    # Create a proper unified legend above the plots, below the title
+        # *** REMOVE X–AXIS LABELS ***
+        ax.set_xticklabels([])
+
+    # Unified legend on the right side
     from matplotlib.patches import Patch
     legend_elements = [Patch(facecolor=palette[name], label=name) for name in palette]
-    g.figure.legend(
+
+    fig.legend(
         handles=legend_elements,
         title="HVAC Type",
-        loc="upper center",
-        ncol=2,
-        bbox_to_anchor=(0.5, 0.95),  # slightly below suptitle
-        frameon=False
+        loc="center right",
+        bbox_to_anchor=(0.99, 0.75),
+        frameon=True
     )
 
-    plt.savefig(f"results/images/barplots/relative_error_{method}.png", dpi=300)
+    # Global title
+    fig.suptitle("Heating and Cooling Error Distribution by Climate Zone", fontsize=16)
+
+    plt.tight_layout(rect=[0, 0, 1, 1])  # make space for title & right legend
+
+    plt.savefig(f"relative_error_{method}.png", dpi=300)
     plt.close()
 
 
-    ################## BEST HEATING DEMAND ###########################
 
-    import matplotlib.cm as cm
-    import matplotlib.colors as mcolors
-    
-    df = pd.read_csv(f"results/best_heating_score_{method}_{name}.csv")
-
-    climate_order = (
-        df.groupby("climate_zone")["heating_demand_rel_error"]
-          .mean()
-          .sort_values(ascending=True)
-          .index.to_list()
-    )
-    
-    df["climate_zone"] = pd.Categorical(df["climate_zone"], categories=climate_order, ordered=True)
-
-    df["heating_demand_rel_error"] = df["heating_demand_rel_error"]*100
-
-    n_colors = df["year"].nunique()  # number of bars per climate_zone
-    cmap = cm.get_cmap("Reds")  # full Reds colormap
-
-    # Take a range avoiding the very lightest values (0.3 to 1.0)
-    colors = [mcolors.rgb2hex(cmap(x)) for x in np.linspace(0.3, 1, n_colors)]
-    plt.figure(figsize=(8, 5))
-    g = sns.barplot(
-        data=df,
-        x="climate_zone",
-        y="heating_demand_rel_error",
-        hue="year",
-        order=climate_order,
-        palette=colors)
-    
-    g.set_xlabel("Climate Zone")
-    g.set_ylabel("Relative Error (%)")
-    g.set_title(f"Heating Score by Climate Zone — {method}")
-    plt.legend(title="Building year")
-    plt.tight_layout()
-    plt.savefig(f"results/images/barplots/heating_score_{method}.png", dpi=300)
-    plt.close()
-
-        ################## BEST COOLING DEMAND ###########################
-
-    import matplotlib.cm as cm
-    import matplotlib.colors as mcolors
-    
-    df = pd.read_csv(f"results/best_cooling_score_{method}_{name}.csv")
-
-    climate_order = (
-        df.groupby("climate_zone")["cooling_demand_rel_error"]
-          .mean()
-          .sort_values(ascending=True)
-          .index.to_list()
-    )
-    
-    df["climate_zone"] = pd.Categorical(df["climate_zone"], categories=climate_order, ordered=True)
-
-    df["cooling_demand_rel_error"] = df["cooling_demand_rel_error"]*100
-
-    n_colors = df["year"].nunique()  # number of bars per climate_zone
-    cmap = cm.get_cmap("Blues") 
-
-    # Take a range avoiding the very lightest values (0.3 to 1.0)
-    colors = [mcolors.rgb2hex(cmap(x)) for x in np.linspace(0.3, 1, n_colors)]
-    plt.figure(figsize=(8, 5))
-    g = sns.barplot(
-        data=df,
-        x="climate_zone",
-        y="cooling_demand_rel_error",
-        hue="year",
-        order=climate_order,
-        palette=colors)
-    
-    g.set_xlabel("Climate Zone")
-    g.set_ylabel("Relative Error (%)")
-    g.set_title(f"Cooling Score by Climate Zone — {method}")
-    plt.legend(title="Building year")
-    plt.tight_layout()
-    plt.savefig(f"results/images/barplots/cooling_score_{method}.png", dpi=300)
-    plt.close()
 
 def hvac_loads_comparison(objects,res_factor,cap_factor,solar_gains_factor,method= Columns.OCCUPANCY_GEOMA):
     print(f"Plotting HVAC timeseries {method}")
@@ -775,8 +741,7 @@ def hvac_loads_comparison(objects,res_factor,cap_factor,solar_gains_factor,metho
 
         climate_zone=objects.loc[objects[Objects.ID]==id,"climate_zone"].iloc[0]
         df_hvac_real= pd.read_csv(f"data/validation/demand/{id}.csv", parse_dates=[Columns.DATETIME])
-        upper_clip=df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"].quantile(0.999)
-        df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"]=df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"].clip(upper=upper_clip)
+        df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"]=df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"]
 
         df_hvac_sim = pd.read_csv(f"data/validation/hvac/{method}/{id}_{year}.csv", parse_dates=[Columns.DATETIME])
         df_solar_gains=pd.read_csv(f"data/validation/solar_gains/{id}_{year}.csv")
@@ -791,8 +756,8 @@ def hvac_loads_comparison(objects,res_factor,cap_factor,solar_gains_factor,metho
         ax2.plot(df_weather[Columns.DATETIME],df_weather[Columns.TEMP_AIR],color="tab:orange", label="Air Temperature",alpha=0.5,zorder=1)
         ax1.plot(df_hvac_real[Columns.DATETIME], df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"]/1000, color="darkred", label="Real Heating Load",zorder=2)
         ax1.plot(df_hvac_real[Columns.DATETIME], df_hvac_real[f"{Types.COOLING}_{Columns.DEMAND}[W]"]/1000, color="royalblue", label="Real Cooling Load",zorder=2)
-        ax1.plot(df_hvac_sim[Columns.DATETIME], df_hvac_sim[f"{Types.HEATING}_{Columns.DEMAND}[W]"]/1000, color="red", label="Simulated Heating Load",alpha=0.8,zorder=2)
-        ax1.plot(df_hvac_sim[Columns.DATETIME], df_hvac_sim[f"{Types.COOLING}_{Columns.DEMAND}[W]"]/1000, color="deepskyblue", label="Simulated Cooling Load",alpha=0.8,zorder=2)
+        ax1.plot(df_hvac_sim[Columns.DATETIME], df_hvac_sim[f"{Types.HEATING}_{Columns.DEMAND}[W]"]/1000, color="red", label="Simulated Heating Load",alpha=0.7,zorder=2)
+        ax1.plot(df_hvac_sim[Columns.DATETIME], df_hvac_sim[f"{Types.COOLING}_{Columns.DEMAND}[W]"]/1000, color="deepskyblue", label="Simulated Cooling Load",alpha=0.7,zorder=2)
         
         #ax1.plot(df_hvac_real[Columns.DATETIME], df_hvac_real[f"total_{Columns.POWER}"]/1000, color="black", label="Real total Load",alpha=0.8)
 
@@ -900,7 +865,7 @@ def normalized_boxplot(df: pd.DataFrame):
             df_cz_id["hvac_simulated"]=df_cz_id[f"simulated_{Types.HEATING}_{Columns.DEMAND}[W]"] + df_cz_id[f"simulated_{Types.COOLING}_{Columns.DEMAND}[W]"]
             df_cz_id["hvac_real"]=df_cz_id[f"real_{Types.HEATING}_{Columns.DEMAND}[W]"] + df_cz_id[f"real_{Types.COOLING}_{Columns.DEMAND}[W]"]
 
-            hvac_real_sum           =   df_cz_id["hvac_real"].sum()
+            hvac_real_sum           =   df_cz_id["hvac_real"].sum()### <- USE THIS TO DIVIDE ALL CUMULATIVE SUMS
             hvac_simulated_sum      =   df_cz_id["hvac_simulated"].sum()
             heating_real_sum        =   df_cz_id[f"real_{Types.HEATING}_{Columns.DEMAND}[W]"].sum()
             heating_simulated_sum   =   df_cz_id[f"simulated_{Types.HEATING}_{Columns.DEMAND}[W]"].sum()
@@ -916,14 +881,14 @@ def normalized_boxplot(df: pd.DataFrame):
 
             fig, ax1 = plt.subplots(figsize=(12, 5))
 
-            ax1.plot(df_cz_id["hvac_simulated_cum_sum"], df_cz_id["hvac_real_cum_sum"], label="Total HVAC")
-            ax1.plot(df_cz_id["heating_simulated_cum_sum"], df_cz_id["heating_real_cum_sum"], color="red",label="Heating")
-            ax1.plot(df_cz_id["cooling_simulated_cum_sum"], df_cz_id["cooling_real_cum_sum"], color="blue",label="Cooling")
+            ax1.plot(df_cz_id["hvac_real_cum_sum"]      ,   df_cz_id["hvac_simulated_cum_sum"]    , label="Total HVAC")
+            ax1.plot(df_cz_id["heating_real_cum_sum"]   ,   df_cz_id["heating_simulated_cum_sum"] , color="red",label="Heating")
+            ax1.plot(df_cz_id["cooling_real_cum_sum"]   ,   df_cz_id["cooling_simulated_cum_sum"] , color="blue",label="Cooling")
 
             ax1.plot([0, 1], [0, 1], "k--", label="Perfect Match")
 
-            plt.xlabel(f"Normalized Simulated Demand (by total)")
-            plt.ylabel(f"Normalized Real Demand (by total)")
+            plt.ylabel(f"Normalized Simulated Demand (by total)")
+            plt.xlabel(f"Normalized Real Demand (by total)")
             plt.title(f"Normalized Comparison by Total Demand. ID: {id}, Climate Zone: {cz}, Year: {year}")
             plt.xlim(0, 1.1)
             plt.ylim(0, 1.1)
@@ -933,94 +898,51 @@ def normalized_boxplot(df: pd.DataFrame):
             plt.savefig(f"normalized_boxplots_{cz}_{id}.png")
             plt.close()
 
-def normalized_boxplot_2(df: pd.DataFrame):
+
+
+def build_large_distinct_palette():
+    """Combine many categorical colormaps into a large distinct palette."""
+    cmaps = ["tab20", "tab20b", "tab20c", "Set3", "Set2", "Set1", "Paired"]
+    big = []
+
+    for cmap in cmaps:
+        cm = plt.get_cmap(cmap)
+        big.extend([cm(i) for i in range(cm.N)])
+
+    # Shuffle so similar colors are far apart
+    np.random.seed(42)
+    np.random.shuffle(big)
+
+    return big
+
+
+def normalized_individual_boxplot(df: pd.DataFrame):
     """
-    Create normalized comparison plots (one per climate zone)
-    comparing simulated vs real HVAC demand (heating + cooling),
-    normalized by total demand (sum over time).
+    Normalized HVAC comparison per climate zone.
+    Uses a very large shuffled categorical palette (100+ colors)
+    with no color repetition and a compact legend always inside the plot.
     """
+
+    # Build big color palette once
+    palette = build_large_distinct_palette()
 
     climate_zones = df["climate_zone"].unique()
 
     for cz in climate_zones:
-        # Filter data for this climate zone
         df_cz = df[df["climate_zone"] == cz].copy()
-
         fig, ax = plt.subplots(figsize=(10, 6))
 
         ids = df_cz["id"].unique()
+        n_ids = len(ids)
 
-        for id in ids:
-            df_cz_id = df_cz[df_cz["id"] == id].copy()
+        # Extend palette if needed (unlikely)
+        colors = (palette * ((n_ids // len(palette)) + 1))[:n_ids]
 
-            # Compute HVAC real & simulated
-            df_cz_id["hvac_simulated"] = (
-                df_cz_id[f"simulated_{Types.HEATING}_{Columns.DEMAND}[W]"]
-                + df_cz_id[f"simulated_{Types.COOLING}_{Columns.DEMAND}[W]"]
-            )
-            df_cz_id["hvac_real"] = (
-                df_cz_id[f"real_{Types.HEATING}_{Columns.DEMAND}[W]"]
-                + df_cz_id[f"real_{Types.COOLING}_{Columns.DEMAND}[W]"]
-            )
+        legend_handles = []
+        legend_labels = []
 
-            # Normalize cumulative sums
-            hvac_sim_sum = df_cz_id["hvac_simulated"].sum()
-            hvac_real_sum = df_cz_id["hvac_real"].sum()
-
-            if hvac_sim_sum == 0 or hvac_real_sum == 0:
-                continue  # skip empty or invalid buildings
-
-            df_cz_id["hvac_simulated_cum_sum"] = (
-                df_cz_id["hvac_simulated"].cumsum() / hvac_sim_sum
-            )
-            df_cz_id["hvac_real_cum_sum"] = (
-                df_cz_id["hvac_real"].cumsum() / hvac_real_sum
-            )
-
-            # Plot building line
-            ax.plot(
-                df_cz_id["hvac_simulated_cum_sum"],
-                df_cz_id["hvac_real_cum_sum"],
-                label=f"Building {id}",
-                alpha=0.7,
-            )
-
-        # Add perfect match line
-        ax.plot([0, 1], [0, 1], "k--", label="Perfect Match")
-
-        ax.set_xlabel("Normalized Simulated HVAC Demand (by total)")
-        ax.set_ylabel("Normalized Real HVAC Demand (by total)")
-        ax.set_title(f"Normalized HVAC Comparison — Climate Zone: {cz}, Year")
-        ax.set_xlim(0, 1.05)
-        ax.set_ylim(0, 1.05)
-        ax.legend(bbox_to_anchor=(1.05, 1), loc="upper left", fontsize="small")
-        ax.grid(True)
-        plt.tight_layout()
-
-        plt.savefig(f"normalized_boxplot_{cz}.png", dpi=300)
-        plt.close()
-
-
-
-def normalized_boxplot_3(df: pd.DataFrame):
-    """
-    Create normalized comparison plots (one per climate zone)
-    comparing simulated vs real HVAC demand (heating + cooling),
-    normalized by total demand (sum over time), with quartile analysis.
-    """
-
-    climate_zones = df["climate_zone"].unique()
-
-    for cz in climate_zones:
-        df_cz = df[df["climate_zone"] == cz].copy()
-        ids = df_cz["id"].unique()
-        year = df_cz["year"].unique()[0]
-
-        # Store all normalized series per building
-        hvac_simulated_all = []
-        hvac_real_all = []
-
-        for id in ids:
+        for idx, id in enumerate(ids):
+            color = colors[idx]
             df_cz_id = df_cz[df_cz["id"] == id].copy()
 
             df_cz_id["hvac_simulated"] = (
@@ -1037,184 +959,470 @@ def normalized_boxplot_3(df: pd.DataFrame):
             if hvac_sim_sum == 0 or hvac_real_sum == 0:
                 continue
 
-            df_cz_id["hvac_sim_cum_norm"] = df_cz_id["hvac_simulated"].cumsum() / hvac_sim_sum
-            df_cz_id["hvac_real_cum_norm"] = df_cz_id["hvac_real"].cumsum() / hvac_real_sum
+            df_cz_id["hvac_simulated_cum_sum"] = (
+                df_cz_id["hvac_simulated"].cumsum() / hvac_real_sum
+            )
+            df_cz_id["hvac_real_cum_sum"] = (
+                df_cz_id["hvac_real"].cumsum() / hvac_real_sum
+            )
 
-            # Interpolate to 100 uniform points for consistent quantile calculation
-            x_uniform = np.linspace(0, 1, 100)
-            sim_interp = np.interp(x_uniform, np.linspace(0, 1, len(df_cz_id)), df_cz_id["hvac_sim_cum_norm"])
-            real_interp = np.interp(x_uniform, np.linspace(0, 1, len(df_cz_id)), df_cz_id["hvac_real_cum_norm"])
+            x = df_cz_id["hvac_real_cum_sum"].to_numpy()
+            y = df_cz_id["hvac_simulated_cum_sum"].to_numpy()
 
-            hvac_simulated_all.append(sim_interp)
-            hvac_real_all.append(real_interp)
+            ax.plot(x, y, alpha=0.75, color=color)
+            ax.scatter([x[-1]], [y[-1]], s=25, marker="o", color=color)
 
-        if not hvac_simulated_all:
-            continue
+            handle = Line2D([], [], linestyle="none", marker="o", color=color, markersize=5)
+            legend_handles.append(handle)
+            legend_labels.append(str(id))
 
-        hvac_simulated_all = np.array(hvac_simulated_all)
-        hvac_real_all = np.array(hvac_real_all)
+        # Diagonal
+        ax.plot([0, 1], [0, 1], "k--")
 
-        # Compute quantiles across buildings for each x value
-        quantiles_sim = np.quantile(hvac_simulated_all, [0.05, 0.25, 0.5, 0.75, 0.95], axis=0)
-        quantiles_real = np.quantile(hvac_real_all, [0.05, 0.25, 0.5, 0.75, 0.95], axis=0)
-
-        # Plot quartile bands and median line
-        fig, ax = plt.subplots(figsize=(10, 6))
-
-        # Fill between quartiles (shaded regions)
-        ax.fill_between(
-            quantiles_sim[0], quantiles_real[0], quantiles_real[4],
-            color="orange", alpha=0.2, label="5–95% range"
-        )
-        ax.fill_between(
-            quantiles_sim[1], quantiles_real[1], quantiles_real[3],
-            color="orange", alpha=0.4, label="25–75% quartile"
-        )
-
-        # Median line
-        ax.plot(quantiles_sim[2], quantiles_real[2], color="darkred", lw=2, label="Median")
-
-        # Perfect match line
-        ax.plot([0, 1], [0, 1], "k--", label="Perfect Match")
-
-        ax.set_xlabel("Normalized Simulated HVAC Demand (by total)")
-        ax.set_ylabel("Normalized Real HVAC Demand (by total)")
-        ax.set_title(f"HVAC Normalized Quartile Comparison — Climate Zone: {cz}")
-        ax.set_xlim(0, 1.05)
-        ax.set_ylim(0, 1.05)
-        ax.legend(loc="lower right")
+        ax.set_xlabel("Normalized Real HVAC Demand (by total)")
+        ax.set_ylabel("Normalized Simulated HVAC Demand (by total)")
+        ax.set_title(f"Normalized HVAC Comparison — Climate Zone: {cz}")
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
         ax.grid(True)
+
+        # Auto-size legend → always inside
+        ncols = min(6, max(1, n_ids // 15))
+
+        ax.legend(
+            legend_handles,
+            legend_labels,
+            title="Building ID",
+            fontsize="xx-small",
+            loc="lower right",            
+            bbox_to_anchor=(0.98, 0.02),
+            ncol=ncols,
+            frameon=True,
+            borderpad=0.2,
+            fancybox=True,
+            framealpha=0.95
+        )
+
         plt.tight_layout()
-        plt.savefig(f"normalized_boxplot_quartiles_{cz}.png", dpi=300)
+        plt.savefig(f"normalized_boxplot_{cz}.png", dpi=300)
         plt.close()
 
 
-def normalized_boxplot_markus():
-
-    """Creates a plot that compares the simulated and original heating demand over time."""
-    import os
-    import pandas as pd
-    import numpy as np
-    import matplotlib.pyplot as plt
-
-    # # Generate datetime index for one year in 1-hour intervals
-    # start_date = pd.to_datetime('2018-01-01')
-    # end_date = start_date + pd.DateOffset(days=365)
-    # datetime_index = pd.date_range(start=start_date, end=end_date, freq='1H')
-    # datetime_index = datetime_index[:-1]
 
 
-    # # Create simulated and original data for 30 time series
-    # n_timeseries = 30
-    # n_rows = len(datetime_index)
 
-    # simulated_data = np.random.normal(loc=1000, scale=3000, size=(n_rows, n_timeseries))
-    # original_data = np.random.normal(loc=1000, scale=3000, size=(n_rows, n_timeseries))
+def smart_offset(x, y, scale=0.03):
+    """
+    Computes an inward orthogonal offset at the end of the curve.
+    """
+    if len(x) < 2:
+        return -scale, scale
 
-    # # Create DataFrame
-    # simulated_df = pd.DataFrame(simulated_data, index=datetime_index)
-    # original_df = pd.DataFrame(original_data, index=datetime_index)
+    dx = x[-1] - x[-2]
+    dy = y[-1] - y[-2]
 
-    # # Set all values below 0 to 0
-    # simulated_df[simulated_df < 0] = 0
-    # original_df[original_df < 0] = 0
+    # Normalize direction vector
+    norm = np.hypot(dx, dy)
+    if norm == 0:
+        return -scale, scale
+    dx, dy = dx / norm, dy / norm
 
-    path = os.path.join(os.path.abspath('./validation/counties'), 'G3500090_Mixed-Dry', 'households', 'G3500090_Mixed-Dry_results.csv')
-    df = pd.read_csv(path, index_col=0, parse_dates=True)
+    # Orthogonal vector
+    ox, oy = -dy, dx
 
-    # Make each row the sum of the previous rows
-    df = df.cumsum(axis=0)
-    print(df)
-    exit()
+    # Always push it inward to the plot center at (0.5,0.5)
+    sign = 1 if (ox*(0.5-x[-1]) + oy*(0.5-y[-1])) > 0 else -1
 
-    #Next steps: Continue creating this plot based on the dummy data.
+    return sign * ox * scale, sign * oy * scale
 
-    # Add a ratio column for each column and group them under the correct first level column
-    for column in data.columns.levels[0]:
-        data[(column, 'Ratio')] = data[(column, 'Simulated')] / data[(column, 'Original')]
+def normalized_joint_boxplot(df: pd.DataFrame):
 
-    # Get the maximum value of each 'Original' column
-    max_values = data.xs('Original', level=1, axis=1).max(axis=0)
+    climate_zones = df["climate_zone"].unique()
 
-    print(data.iloc[:5, :].to_string())
-    print(data.iloc[-5:, :].to_string())
+    for cz in climate_zones:
+        df_cz = df[df["climate_zone"] == cz].copy()
+        ids = df_cz["id"].unique()
 
-    # Divide both 'Original' and 'Simulated' columns by the corresponding maximum values
-    for column in data.columns.levels[0]:
-        data[(column, 'Simulated')] /= max_values[column]
-        data[(column, 'Original')] /= max_values[column]
+        # --------------------------
+        # Helper function to build a plot
+        # --------------------------
+        def build_plot(hvac_sim_arr, hvac_real_arr, cz, title_suffix, filename_suffix, mode):
+            if len(hvac_sim_arr) == 0:
+                return
 
-    print(data.iloc[:5, :].to_string())
-    print(data.iloc[-5:, :].to_string())
+            hvac_sim_arr = np.array(hvac_sim_arr)
+            hvac_real_arr = np.array(hvac_real_arr)
 
-    # data.columns = pd.MultiIndex.from_product([data.columns.levels[0], ['Original', 'Simulated', 'Ratio']])
+            # Colors by mode
+            if mode == "combined":
+                c_5_95 = "orange"
+                c_25_75 = "orange"
+                c_median = "darkred"
+
+            elif mode == "heating":
+                c_5_95 = "#ffcccc"     # light red
+                c_25_75 = "#ff6666"    # medium red
+                c_median = "#990000"   # dark red
+
+            elif mode == "cooling":
+                c_5_95 = "#cce6ff"     # light blue
+                c_25_75 = "#66b3ff"    # medium blue
+                c_median = "#004c99"   # dark blue
+
+            # -----------------------------------------
+            # Correct quantile computation:
+            # REAL = X-axis, SIM = Y-axis
+            # -----------------------------------------
+            q_levels = [0.05, 0.25, 0.5, 0.75, 0.95]
+
+            qs_real = np.quantile(hvac_real_arr, q_levels, axis=0)   # X quantiles
+            qs_sim  = np.quantile(hvac_sim_arr,  q_levels, axis=0)   # Y quantiles
+
+            # Sort by REAL median to ensure monotonic X
+            x_med = qs_real[2]
+            sort_idx = np.argsort(x_med)
+
+            x_sorted = x_med[sort_idx]
+
+            y_med = qs_sim[2][sort_idx]
+            y_25 = qs_sim[1][sort_idx]
+            y_75 = qs_sim[3][sort_idx]
+            y_5  = qs_sim[0][sort_idx]
+            y_95 = qs_sim[4][sort_idx]
+
+            # -----------------------------------------
+            # Plotting
+            # -----------------------------------------
+            fig, ax = plt.subplots(figsize=(10, 6))
+
+            ax.fill_between(
+                x_sorted, y_5, y_95,
+                color=c_5_95, alpha=0.35, label="5–95% range"
+            )
+            ax.fill_between(
+                x_sorted, y_25, y_75,
+                color=c_25_75, alpha=0.60, label="25–75% quartile"
+            )
+            ax.plot(x_sorted, y_med, color=c_median, lw=2.5, label="Median")
+
+            # Perfect match line
+            ax.plot([0, 1], [0, 1], "k--", label="Perfect Match")
+
+            # Labels
+            ax.set_xlabel("Normalized Real (by real total)")
+            ax.set_ylabel("Normalized Simulated (by real total)")
+            ax.set_title(f"HVAC Normalized Quartile Comparison ({title_suffix}) — Climate Zone: {cz}")
+
+            ax.set_xlim(0, 1)
+            ax.set_ylim(0, 1.1)
+            ax.grid(True)
+            ax.legend(loc="lower right")
+
+            plt.tight_layout()
+            plt.savefig(f"normalized_boxplot_quartiles_{filename_suffix}_{cz}.png", dpi=300)
+            plt.close()
+
+        # --------------------------
+        # Accumulators per category
+        # --------------------------
+        comb_sim_list, comb_real_list = [], []
+        heat_sim_list, heat_real_list = [], []
+        cool_sim_list, cool_real_list = [], []
+
+        # --------------------------
+        # Process each building
+        # --------------------------
+        for bid in ids:
+            df_b = df_cz[df_cz["id"] == bid].copy().sort_values("datetime")
+
+            sim_h = df_b[f"simulated_{Types.HEATING}_{Columns.DEMAND}[W]"].fillna(0).values
+            sim_c = df_b[f"simulated_{Types.COOLING}_{Columns.DEMAND}[W]"].fillna(0).values
+            real_h = df_b[f"real_{Types.HEATING}_{Columns.DEMAND}[W]"].fillna(0).values
+            real_c = df_b[f"real_{Types.COOLING}_{Columns.DEMAND}[W]"].fillna(0).values
+
+            sim_total = sim_h + sim_c
+            real_total = real_h + real_c
+
+            real_sum = real_total.sum()
+            real_h_sum = real_h.sum()
+            real_c_sum = real_c.sum()
+
+            n_points = 200
+            x_uniform = np.linspace(0, 1, n_points)
+
+            # Combined
+            if real_sum > 0:
+                sim_cum = np.cumsum(sim_total) / real_sum
+                real_cum = np.cumsum(real_total) / real_sum
+                x_src = np.linspace(0, 1, len(sim_cum))
+                comb_sim_list.append(np.interp(x_uniform, x_src, sim_cum))
+                comb_real_list.append(np.interp(x_uniform, x_src, real_cum))
+
+            # Heating
+            if real_h_sum > 0:
+                sim_h_cum = np.cumsum(sim_h) / real_h_sum
+                real_h_cum = np.cumsum(real_h) / real_h_sum
+                x_src = np.linspace(0, 1, len(sim_h_cum))
+                heat_sim_list.append(np.interp(x_uniform, x_src, sim_h_cum))
+                heat_real_list.append(np.interp(x_uniform, x_src, real_h_cum))
+
+            # Cooling
+            if real_c_sum > 0:
+                sim_c_cum = np.cumsum(sim_c) / real_c_sum
+                real_c_cum = np.cumsum(real_c) / real_c_sum
+                x_src = np.linspace(0, 1, len(sim_c_cum))
+                cool_sim_list.append(np.interp(x_uniform, x_src, sim_c_cum))
+                cool_real_list.append(np.interp(x_uniform, x_src, real_c_cum))
+
+        # --------------------------
+        # Build 3 plots with correct colors
+        # --------------------------
+        build_plot(comb_sim_list, comb_real_list, cz, "Combined HVAC", "combined", "combined")
+        build_plot(heat_sim_list, heat_real_list, cz, "Heating Only", "HEATING", "heating")
+        build_plot(cool_sim_list, cool_real_list, cz, "Cooling Only", "COOLING", "cooling")
 
 
-    # Use the ratio columns to calculate the median, upper quartile, lower quartile, upper 95%, and lower 5%
-    # Calculate the statistics for each row using the ratio columns
-    data[('Stats', 'Lower 5%')] = data.xs('Ratio', level=1, axis=1).quantile(0.05, axis=1)
-    data[('Stats', 'Lower Quartile')] = data.xs('Ratio', level=1, axis=1).quantile(0.25, axis=1)
-    data[('Stats', 'Median')] = data.xs('Ratio', level=1, axis=1).median(axis=1)
-    data[('Stats', 'Upper Quartile')] = data.xs('Ratio', level=1, axis=1).quantile(0.75, axis=1)
-    data[('Stats', 'Upper 95%')] = data.xs('Ratio', level=1, axis=1).quantile(0.95, axis=1)
+from matplotlib.colors import ListedColormap
 
-    # Calculate the statistics for each row based on the 'Original' and 'Simulated' columns
-    data[('Stats', 'Lower 5% (Original)')] = data.xs('Original', level=1, axis=1).quantile(0.05, axis=1)
-    data[('Stats', 'Lower Quartile (Original)')] = data.xs('Original', level=1, axis=1).quantile(0.25, axis=1)
-    data[('Stats', 'Median (Original)')] = data.xs('Original', level=1, axis=1).median(axis=1)
-    data[('Stats', 'Upper Quartile (Original)')] = data.xs('Original', level=1, axis=1).quantile(0.75, axis=1)
-    data[('Stats', 'Upper 95% (Original)')] = data.xs('Original', level=1, axis=1).quantile(0.95, axis=1)
+def plot_us_buildings(df):
 
-    data[('Stats', 'Lower 5% (Simulated)')] = data.xs('Simulated', level=1, axis=1).quantile(0.05, axis=1)
-    data[('Stats', 'Lower Quartile (Simulated)')] = data.xs('Simulated', level=1, axis=1).quantile(0.25, axis=1)
-    data[('Stats', 'Median (Simulated)')] = data.xs('Simulated', level=1, axis=1).median(axis=1)
-    data[('Stats', 'Upper Quartile (Simulated)')] = data.xs('Simulated', level=1, axis=1).quantile(0.75, axis=1)
-    data[('Stats', 'Upper 95% (Simulated)')] = data.xs('Simulated', level=1, axis=1).quantile(0.95, axis=1)
+    lat = df[Objects.LAT].values
+    lon = df[Objects.LON].values
+    area = df[Objects.AREA].values
+    climate = df["climate_zone"].values
 
-    # Fill NaN values with 0
-    data = data.fillna(0)
+    # ----------------------------------------------------
+    # FIXED CLIMATE ZONE ORDER (cold → hot)
+    # ----------------------------------------------------
+    climate_order = [
+        "very cold",
+        "cold",
+        "marine",
+        "mixed dry",
+        "hot humid",
+        "hot dry"
+    ]
 
-    print(data.iloc[:5, :].to_string())
-    print(data.iloc[-5:, :].to_string())
+    # Filter only existing categories (avoid errors)
+    climate_order = [cz for cz in climate_order if cz in df["climate_zone"].unique()]
 
-    # Create the figure and axis
-    plt.figure(figsize=(10, 10))
-    ax = plt.gca()
+    # ----------------------------------------------------
+    # CUSTOM COLORMAP: blue → neutral → red
+    # ----------------------------------------------------
+    climate_colors = {
+        "very cold": "#08306B",   # very deep blue
+        "cold": "#2171B5",        # strong blue
+        "marine": "#6A51A3",      # purple / midpoint
+        "mixed dry": "#FD8D3C",   # orange
+        "hot humid": "#FC4E2A",   # strong orange-red
+        "hot dry": "#B10026",     # deep red
+    }
 
-    # Define a colormap with different shades of orange
-    n_shades = 4
-    cmap = plt.get_cmap('Oranges', n_shades)
+    colors = [climate_colors[z] for z in climate_order]
 
-    # Plot the custom boxplot-like representation
-    stats = ['Lower 5%', 'Lower Quartile', 'Median', 'Upper Quartile', 'Upper 95%']
-    for i, stat in enumerate(stats):
-        color = cmap(i / (n_shades - 1))  # Get the color from the colormap
-        plt.plot(data[('Stats', f'{stat} (Original)')], data[('Stats', f'{stat} (Simulated)')], color='black', linewidth=1, label=stat)
-        if i < n_shades:
-            if 1 < i < 3:
-                alpha = 1
-            else:
-                alpha = 0.5
-            plt.fill_between(data[('Stats', f'{stat} (Original)')], data[('Stats', f'{stats[i]} (Simulated)')], data[('Stats', f'{stats[i + 1]} (Simulated)')], color='Orange', alpha=alpha)
+    zone_to_idx = {z: i for i, z in enumerate(climate_order)}
+    climate_color_idx = np.array([zone_to_idx[z] for z in climate])
 
-    # Plot the line from (0,0) to (1,1) for the ratio
-    plt.plot([0, 1], [0, 1], color='black', linestyle='dashed', label='Ratio of 1', linewidth=2)
+    # ----------------------------------------------------
+    # Jitter
+    # ----------------------------------------------------
+    jitter_scale = 1.8
+    lat_jitter = lat + np.random.uniform(-jitter_scale, jitter_scale, size=len(lat))
+    lon_jitter = lon + np.random.uniform(-jitter_scale, jitter_scale, size=len(lon))
 
-    # Set axis labels and title
-    plt.xlabel('Normalized Heating Demand (Original)')
-    plt.ylabel('Ratio (Simulated / Original)')
-    plt.title('Comparison of Simulated and Original Heating Ratios over Time')
+    # ----------------------------------------------------
+    # Basemap
+    # ----------------------------------------------------
+    fig = plt.figure(figsize=(12, 8))
+    ax = fig.add_subplot(111)
 
-    # Set x-axis and y-axis limits
-    plt.xlim(0, 1.1)
-    plt.ylim(0, 1.1)
+    m = Basemap(
+        projection='lcc',
+        resolution='i',
+        width=3.9e6, height=3e6,
+        lat_0=39, lon_0=-102,
+        ax=ax
+    )
 
-    # Add a legend
-    plt.legend()
+    m.shadedrelief()
+    m.drawcoastlines(color='gray')
+    m.drawcountries(color='gray')
+    m.drawstates(color='gray')
 
-    # Show the grid
-    plt.grid(True)
+    # ----------------------------------------------------
+    # Scatter
+    # ----------------------------------------------------
+    sc = m.scatter(
+        lon_jitter, lat_jitter,
+        latlon=True,
+        c=climate_color_idx,
+        cmap=ListedColormap(colors),
+        s=area,
+        alpha=0.75,
+        edgecolor='k',
+        linewidth=0.25
+    )
 
-    # Display the plot
-    plt.tight_layout()
-    plt.show()
+    # ----------------------------------------------------
+    # CLIMATE ZONE LEGEND (ordered)
+    # ----------------------------------------------------
+    handles_climate = [
+        plt.Line2D(
+            [], [], marker="o", linestyle="",
+            markersize=10,
+            markerfacecolor=climate_colors[zone],
+            markeredgecolor='k',
+            label=zone
+        )
+        for zone in climate_order
+    ]
+
+    legend1 = fig.legend(
+        handles=handles_climate,
+        title="Climate Zone",
+        loc="center left",
+        bbox_to_anchor=(0.7, 0.78),
+        frameon=True
+    )
+
+    fig.add_artist(legend1)
+
+    # ----------------------------------------------------
+    # AREA LEGEND
+    # ----------------------------------------------------
+    example_sizes = [50, 100, 200, 500]
+
+    handles_area = [
+        plt.Line2D(
+            [], [], marker="o", linestyle="",
+            markersize=np.sqrt(s/np.pi),
+            markerfacecolor="gray", alpha=0.5,
+            markeredgecolor="k",
+            label=f"{s} m²"
+        )
+        for s in example_sizes
+    ]
+
+    ax.legend(
+        handles=handles_area,
+        title="Reference Areas",
+        loc="lower left",
+        frameon=True
+    )
+
+    # ----------------------------------------------------
+    # TITLE
+    # ----------------------------------------------------
+    plt.title("Geographical distribution of validation dwellings", fontsize=16)
+
+    # Space for legends
+    plt.subplots_adjust(right=0.83)
+
+    plt.savefig("geo_distribution_climate_zones.png", dpi=300, bbox_inches="tight")
+    plt.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#    ################## BEST HEATING DEMAND ###########################
+#
+#    import matplotlib.cm as cm
+#    import matplotlib.colors as mcolors
+#    
+#    df = pd.read_csv(f"results/best_fit_score_{method}_{name}.csv")
+#
+#    climate_order = (
+#        df.groupby("climate_zone")["heating_demand_rel_error"]
+#          .mean()
+#          .sort_values(ascending=True)
+#          .index.to_list()
+#    )
+#    
+#    df["climate_zone"] = pd.Categorical(df["climate_zone"], categories=climate_order, ordered=True)
+#
+#    df["heating_demand_rel_error"] = df["heating_demand_rel_error"]*100
+#
+#    n_colors = df["year"].nunique()  # number of bars per climate_zone
+#    cmap = cm.get_cmap("Reds")  # full Reds colormap
+#
+#    # Take a range avoiding the very lightest values (0.3 to 1.0)
+#    colors = [mcolors.rgb2hex(cmap(x)) for x in np.linspace(0.3, 1, n_colors)]
+#    plt.figure(figsize=(8, 5))
+#    g = sns.barplot(
+#        data=df,
+#        x="climate_zone",
+#        y="heating_demand_rel_error",
+#        hue="year",
+#        order=climate_order,
+#        palette=colors)
+#    
+#    g.set_xlabel("Climate Zone")
+#    g.set_ylabel("Relative Error (%)")
+#    g.set_title(f"Heating Score by Climate Zone — {method}")
+#    plt.legend(title="Building year")
+#    plt.tight_layout()
+#    plt.savefig(f"results/images/barplots/heating_score_{method}.png", dpi=300)
+#    plt.close()
+#
+#        ################## BEST COOLING DEMAND ###########################
+#
+#    import matplotlib.cm as cm
+#    import matplotlib.colors as mcolors
+#    
+#    df = pd.read_csv(f"results/best_fit_score_{method}_{name}.csv")
+#
+#    climate_order = (
+#        df.groupby("climate_zone")["cooling_demand_rel_error"]
+#          .mean()
+#          .sort_values(ascending=True)
+#          .index.to_list()
+#    )
+#    
+#    df["climate_zone"] = pd.Categorical(df["climate_zone"], categories=climate_order, ordered=True)
+#
+#    df["cooling_demand_rel_error"] = df["cooling_demand_rel_error"]*100
+#
+#    n_colors = df["year"].nunique()  # number of bars per climate_zone
+#    cmap = cm.get_cmap("Blues") 
+#
+#    # Take a range avoiding the very lightest values (0.3 to 1.0)
+#    colors = [mcolors.rgb2hex(cmap(x)) for x in np.linspace(0.3, 1, n_colors)]
+#    plt.figure(figsize=(8, 5))
+#    g = sns.barplot(
+#        data=df,
+#        x="climate_zone",
+#        y="cooling_demand_rel_error",
+#        hue="year",
+#        order=climate_order,
+#        palette=colors)
+#    
+#    g.set_xlabel("Climate Zone")
+#    g.set_ylabel("Relative Error (%)")
+#    g.set_title(f"Cooling Score by Climate Zone — {method}")
+#    plt.legend(title="Building year")
+#    plt.tight_layout()
+#    plt.savefig(f"results/images/barplots/cooling_score_{method}.png", dpi=300)
+#    plt.close()

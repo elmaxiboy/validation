@@ -1,3 +1,4 @@
+import os
 import numpy
 import pandas as pd
 from teaser.project import Project
@@ -272,4 +273,94 @@ def estimate_window_areas_nrel():
     df_windows.to_csv("data/validation/tipology/windows_nrel.csv",index=False)
 
 
-#estimate_window_areas_nrel()
+# ---------------------------------------------------------
+# 1. PARAMETERS
+# ---------------------------------------------------------
+
+CLIMATE_ZONES = {
+    "hot dry": {"base": 0.5, "season_amp": 0.3},
+    "hot humid": {"base": 0.7, "season_amp": 0.25},
+    "mixed dry": {"base": 0.6, "season_amp": 0.20},
+    "cold": {"base": 0.4, "season_amp": 0.35},
+    "very cold": {"base": 0.3, "season_amp": 0.40},
+    "marine": {"base": 0.5, "season_amp": 0.20},
+}
+
+MODES = {
+    "typical": 1.0,
+    "efficient": 0.7,
+    "optimal": 0.4
+}
+
+OUTPUT_FOLDER = "data/validation/tipology/ventilation"
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
+# ---------------------------------------------------------
+# 2. CREATE HOURLY TIMESTAMPS (2018, 15-min resolution)
+# ---------------------------------------------------------
+
+dt_index = pd.date_range(
+    start="2018-01-01 00:00",
+    end="2018-12-31 23:45",
+    freq="15min"
+)
+
+N = len(dt_index)
+day_of_year = dt_index.dayofyear.values
+
+# ---------------------------------------------------------
+# 3. GENERATION FUNCTION
+# ---------------------------------------------------------
+
+def generator_ach_series(base, season_amp, mode_factor):
+    """
+    Produce synthetic ACH:
+    - base ACH for the climate
+    - seasonal sinusoidal variation
+    - diurnal ventilation behavior
+    - random perturbation
+    """
+
+    # Seasonal profile (more NV in summer or shoulder seasons)
+    seasonal = season_amp * numpy.sin(2 * numpy.pi * (day_of_year / 365))
+
+    # Diurnal pattern (higher daytime ventilation)
+    hour = dt_index.hour.values
+    diurnal = 0.3 * numpy.sin(2 * numpy.pi * (hour / 24))
+
+    # Random noise
+    noise = numpy.random.normal(0, 0.05, N)
+
+    # Combine all effects
+    ach = base + seasonal + diurnal + noise
+
+    # Apply ventilation mode factor
+    ach = ach * mode_factor
+
+    # ACH cannot be negative
+    ach[ach < 0] = 0
+
+    return ach
+
+# ---------------------------------------------------------
+# 4. GENERATE AND SAVE CSV FILES
+# ---------------------------------------------------------
+
+def generate_ach_series():
+    for cz_name, params in CLIMATE_ZONES.items():
+        for mode_name, mode_factor in MODES.items():
+
+            base = params["base"]
+            amp = params["season_amp"]
+
+            ach = generator_ach_series(base, amp, mode_factor)
+
+            df = pd.DataFrame({
+                "datetime": dt_index,
+                f"{mode_name}": ach
+            })
+
+            filename = f"{cz_name.replace(' ', '_')}_{mode_name}.csv"
+            df.to_csv(os.path.join(OUTPUT_FOLDER, filename), index=False)
+
+    print("ACH time series generated in:", OUTPUT_FOLDER)
