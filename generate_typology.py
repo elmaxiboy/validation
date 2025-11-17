@@ -316,16 +316,24 @@ def generator_ach_series(base, season_amp, mode_factor):
     """
     Produce synthetic ACH:
     - base ACH for the climate
-    - seasonal sinusoidal variation
+    - seasonal sinusoidal variation (peaks in June–July–August)
     - diurnal ventilation behavior
     - random perturbation
     """
 
-    # Seasonal profile (more NV in summer or shoulder seasons)
-    seasonal = season_amp * numpy.sin(2 * numpy.pi * (day_of_year / 365))
-
-    # Diurnal pattern (higher daytime ventilation)
+    # Extract day of year and hour
+    day_of_year = dt_index.dayofyear.values
     hour = dt_index.hour.values
+    N = len(dt_index)
+
+    # ---------------------------
+    # Seasonal profile: peak ~ day 200 (mid-July)
+    # ---------------------------
+    summer_peak_day = 200
+    seasonal = season_amp * numpy.cos(
+    2 * numpy.pi * (day_of_year - summer_peak_day) / 365
+)
+    # Diurnal pattern (higher daytime ventilation)
     diurnal = 0.3 * numpy.sin(2 * numpy.pi * (hour / 24))
 
     # Random noise
@@ -364,3 +372,17 @@ def generate_ach_series():
             df.to_csv(os.path.join(OUTPUT_FOLDER, filename), index=False)
 
     print("ACH time series generated in:", OUTPUT_FOLDER)
+
+
+generate_ach_series()
+
+def total_window_area():
+    df=pd.read_csv("data/validation/objects_entise.csv")
+    df_windows=pd.read_csv("data/validation/tipology/windows.csv")
+    df["window_area[m2]"]=0
+    for idx,row in df.iterrows():
+        window_area=df_windows.loc[(df_windows["id"]==row["id"]) & (df_windows["year"]==row["year"]),"area[m2]"].sum()
+        df.at[idx,"window_area[m2]"]=window_area
+    df["window_area[m2]"]=df["window_area[m2]"].round(2)
+    df.to_csv("data/validation/objects_entise.csv",index=False)    
+

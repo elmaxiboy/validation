@@ -12,6 +12,7 @@ from entise.constants.columns import Columns
 from entise.constants.objects import Objects
 from matplotlib.patches import Patch
 from mpl_toolkits.basemap import Basemap
+import tqdm
 
 matplotlib.use("Agg")
 
@@ -1322,29 +1323,362 @@ def plot_us_buildings(df):
     plt.close()
 
 
+def plot_internal_gains(df):
+
+    climate_order = [
+        "very cold",
+        "cold",
+        "marine",
+        "mixed dry",
+        "hot humid",
+        "hot dry"
+    ]
+      
+    df = df.drop_duplicates(subset="id", keep="first")
+
+    # -------------------------------------------------------------
+    # 2) Load each CSV and compute monthly means per building
+    # -------------------------------------------------------------
+    monthly_records = []
+
+    for _, row in  tqdm.tqdm(df.iterrows(), total=len(df), desc="Processing buildings"):
+        id  = row["id"]
+        cz  = row["climate_zone"]
+        csv_path = f"data/validation/internal_gains/geoma/{id}.csv"
+
+        # Load timeseries (assume columns: datetime, solar_gain)
+        ts = pd.read_csv(csv_path, parse_dates=["datetime"])
+
+        # Ensure correct datetime index
+        ts = ts.set_index("datetime")
+
+        # Monthly mean solar gains
+        monthly = ts["gains_internal[W]"].resample("M").mean()
+        monthly = monthly.to_frame("gains_internal[W]")
+        monthly["month"] = monthly.index.month
+        monthly["climate_zone"] = cz
+        monthly["id"] = id
+
+        monthly_records.append(monthly)
+
+    # Combine
+    monthly_df = pd.concat(monthly_records).reset_index(drop=True)
+
+    # -------------------------------------------------------------
+    # 3) Aggregate over buildings per climate zone & year group
+    # -------------------------------------------------------------
+    agg_df = (
+        monthly_df
+        .groupby(["climate_zone", "month"])["gains_internal[W]"]
+        .mean()
+        .reset_index()
+    )
+
+    # Ensure month order
+    agg_df = agg_df.sort_values("month")
+
+    # -------------------------------------------------------------
+    # 4) Plot — Facet grid: rows = climate zones, columns = year groups
+    # -------------------------------------------------------------
+    sns.set_theme(style="whitegrid")
+
+    g = sns.catplot(
+        data=agg_df,
+        x="month",
+        y="gains_internal[W]",
+        col="climate_zone",
+        kind="bar",
+        color="dimgrey",
+        col_wrap=3,
+        height=3.2,
+        aspect=1.3,
+        sharey=True,
+        col_order=climate_order
+    )
+
+    g.set_axis_labels("Month", "Average Internal Gains (W)")
+    g.set_titles("{col_name}")
+    g.figure.suptitle("Average monthly internal gains", y=0.98, fontsize=14)
+    g.figure.subplots_adjust(top=0.87)
+
+    agg_df.to_csv("aggregated_internal_gains.csv", index=False)
+    plt.savefig("internal_gains_summary.png")
 
 
 
+def plot_solar_gains(df):
+
+    climate_order = [
+        "very cold",
+        "cold",
+        "marine",
+        "mixed dry",
+        "hot humid",
+        "hot dry"
+    ]
+    # -------------------------------------------------------------
+    # 1) Define year groups
+    # -------------------------------------------------------------
+    def assign_year_group(year):
+        if year < 1950:
+            return "1900–1950"
+        elif year < 2000:
+            return "1950–2000"
+        else:
+            return "2000+"
+
+    df["year_group"] = df["year"].apply(assign_year_group)
+
+    # -------------------------------------------------------------
+    # 2) Load each CSV and compute monthly means per building
+    # -------------------------------------------------------------
+    monthly_records = []
+
+    for _, row in  tqdm.tqdm(df.iterrows(), total=len(df), desc="Processing buildings"):
+        id  = row["id"]
+        cz  = row["climate_zone"]
+        year=row["year"]
+        group = row["year_group"]
+        window_area = row["window_area[m2]"]
+        csv_path = f"data/validation/solar_gains/{id}_{year}.csv"
+
+        # Load timeseries (assume columns: datetime, solar_gain)
+        ts = pd.read_csv(csv_path, parse_dates=["datetime"])
+
+        # Ensure correct datetime index
+        ts = ts.set_index("datetime")
+
+        # Monthly mean solar gains
+        monthly = (ts["gains_solar[W]"] / window_area).resample("M").mean()
+        monthly = monthly.to_frame("gains_solar[W]")
+        monthly["month"] = monthly.index.month
+        monthly["climate_zone"] = cz
+        monthly["year_group"] = group
+        monthly["id"] = id
+
+        monthly_records.append(monthly)
+
+    # Combine
+    monthly_df = pd.concat(monthly_records).reset_index(drop=True)
+
+    # -------------------------------------------------------------
+    # 3) Aggregate over buildings per climate zone & year group
+    # -------------------------------------------------------------
+    agg_df = (
+        monthly_df
+        .groupby(["climate_zone", "year_group", "month"])["gains_solar[W]"]
+        .mean()
+        .reset_index()
+    )
+
+    # Ensure month order
+    agg_df = agg_df.sort_values("month")
+
+    # -------------------------------------------------------------
+    # 4) Plot — Facet grid: rows = climate zones, columns = year groups
+    # -------------------------------------------------------------
+    sns.set_theme(style="whitegrid")
+
+    g = sns.catplot(
+        data=agg_df,
+        x="month",
+        y="gains_solar[W]",
+        col="year_group",
+        row="climate_zone",
+        kind="bar",
+        color="gold",
+        row_order=climate_order,
+        height=3.2,
+        aspect=1.3,
+        sharey=True
+    )
+
+    g.set_axis_labels("Month", "Average Solar Gains (W/m2)")
+    g.set_titles("{row_name} | {col_name}")
+    g.figure.suptitle("Average monthly solar gains, normalized by total window area", y=0.98, fontsize=18)
+    g.figure.subplots_adjust(top=0.93)
+    agg_df.to_csv("aggregated_solar_gains.csv", index=False)
+    plt.savefig("solar_gains_summary.png")
+
+def plot_ventilation_rate(df):
+
+    climate_order = [
+        "very cold",
+        "cold",
+        "marine",
+        "mixed dry",
+        "hot dry",
+        "hot humid",
+
+    ]
+
+    # -------------------------------------------------------------
+    # 2) Load each CSV and compute monthly means per building
+    # -------------------------------------------------------------
+    monthly_records = []
+    df = df.drop_duplicates(subset="id", keep="first")
+    for _, row in  tqdm.tqdm(df.iterrows(), total=len(df), desc="Processing buildings"):
+        id  = row["id"]
+        cz  = row["climate_zone"]
+        csv_path = f"data/validation/ventilation/{id}.csv"
+
+        # Load timeseries (assume columns: datetime, solar_gain)
+        ts = pd.read_csv(csv_path, parse_dates=["datetime"])
+
+        # Ensure correct datetime index
+        ts = ts.set_index("datetime")
+
+        # Monthly mean ventilation rate
+        monthly = (ts["ventilation[W K-1]"]).resample("M").mean()
+        monthly = monthly.to_frame("ventilation[W K-1]")
+        monthly["month"] = monthly.index.month
+        monthly["climate_zone"] = cz
+        monthly["id"] = id
+
+        monthly_records.append(monthly)
+
+    # Combine
+    monthly_df = pd.concat(monthly_records).reset_index(drop=True)
+
+    # -------------------------------------------------------------
+    # 3) Aggregate over buildings per climate zone & year group
+    # -------------------------------------------------------------
+    agg_df = (
+        monthly_df
+        .groupby(["climate_zone", "month"])["ventilation[W K-1]"]
+        .mean()
+        .reset_index()
+    )
+
+    # Ensure month order
+    agg_df = agg_df.sort_values("month")
+
+    # -------------------------------------------------------------
+    # 4) Plot — Facet grid: rows = climate zones, columns = year groups
+    # -------------------------------------------------------------
+    sns.set_theme(style="whitegrid")
+
+    g = sns.catplot(
+        data=agg_df,
+        x="month",
+        y="ventilation[W K-1]",
+        col="climate_zone",
+        kind="bar",
+        color="darkblue",
+        col_order=climate_order,
+        col_wrap=3,
+        height=3.5,
+        aspect=1.3,
+        sharey=True
+    )
+
+    g.set_axis_labels("Month", "Average Ventilation Rate (W/K)")
+    g.set_titles("{col_name}")
+    g.figure.suptitle("Average monthly ventilation rate", y=0.98, fontsize=18)
+    g.figure.subplots_adjust(top=0.83)
+    #g.figure.subplots_adjust(top=0.85, right=0.95, left=0.25, bottom=0.15)
+    agg_df.to_csv("aggregated_ventilation_rate.csv", index=False)
+    plt.savefig("aggregated_ventilation_rate.png")
+
+#plot_internal_gains(pd.read_csv("data/validation/objects_entise.csv"))
+#plot_solar_gains(pd.read_csv("data/validation/objects_entise.csv"))
+
+
+def windows_area_distribution(df):
+
+    # -------------------------------
+    # 1) Define building year groups
+    # -------------------------------
+    def assign_year_group(year):
+        if year < 1950:
+            return "1900–1950"
+        elif year < 2000:
+            return "1950–2000"
+        else:
+            return "2000+"
+
+    df["year_group"] = df["year"].apply(assign_year_group)
+
+    sns.set_theme(style="whitegrid")
+
+    # -------------------------------
+    # 2) Create violin plot
+    # -------------------------------
+    g = sns.catplot(
+        data=df,
+        y="year_group",
+        x="window_area[m2]",
+        kind="violin",
+        palette=["lightblue"],
+        height=4,
+        aspect=1.3
+    )
+
+    # Set axis labels
+    g.set_axis_labels("Window Area (m²)", "Building Year Category")
 
 
 
+    # Increase grid resolution (more ticks)
+    ax = g.ax
+    ax.xaxis.set_major_locator(plt.MaxNLocator(10))  # Increase number of gridlines
+    ax.grid(True, which="major", linewidth=0.6)
+
+    # Title + spacing
+    g.figure.suptitle("Window Area Distribution by Building Year Category", 
+                      y=0.98, fontsize=14)
+    g.figure.subplots_adjust(top=0.85, right=0.95, left=0.25, bottom=0.15)
+    plt.tight_layout()
+
+    plt.savefig("window_area_distribution.png", dpi=300)
+
+def occupancy_detected_distribution(df):
+    climate_order = [
+        "very cold",
+        "cold",
+        "marine",
+        "mixed dry",
+        "hot humid",
+        "hot dry"
+    ]
+
+    sns.set_theme(style="whitegrid")
+
+    # -------------------------------
+    # 2) Create violin plot
+    # -------------------------------
+    g = sns.catplot(
+        data=df,
+        y="climate_zone",
+        x="average_occupancy",
+        kind="box",
+        color="dimgrey",
+        order=climate_order,
+        height=4,
+        aspect=1.3,
+    )
+
+    # Set axis labels
+    g.set_axis_labels("% of yearly occupancy", "Climate Zone")
 
 
 
+    # Increase grid resolution (more ticks)
+    ax = g.ax
+    ax.xaxis.set_major_locator(plt.MaxNLocator(10))  # Increase number of gridlines
+    ax.grid(True, which="major", linewidth=0.6)
+
+    # Title + spacing
+    g.figure.suptitle("Yearly average of detected occupancy via GeoMA", 
+                      y=0.98, fontsize=14)
+    g.figure.subplots_adjust(top=0.85, right=0.95, left=0.25, bottom=0.15)
+    plt.tight_layout()
+
+    plt.savefig("occupancy_distribution.png", dpi=300)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+plot_ventilation_rate(pd.read_csv("data/validation/objects_entise.csv"))
 
 
 #    ################## BEST HEATING DEMAND ###########################

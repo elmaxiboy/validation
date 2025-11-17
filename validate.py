@@ -15,6 +15,7 @@ from entise.methods.auxiliary.ventilation.strategies import VentilationTimeSerie
 from entise.methods.hvac.R1C1 import calculate_timeseries 
 from entise.methods.auxiliary.solar.strategies import SolarGainsPVLib
 import pvlib
+import tqdm
 
 cwd="."
 solar_gains_folder="data/validation/solar_gains"
@@ -418,7 +419,7 @@ def derive_hvac(objects,capacitance_factor,resistance_factor,ventilation_mode,me
 
     full_index = pd.date_range(start="2018-01-01 00:00:00", end="2018-12-31 23:45:00", freq="15min",name=Columns.DATETIME)
 
-    for idx,obj in objects.iterrows():
+    for idx,obj in tqdm.tqdm(objects.iterrows(), total=len(objects), desc="Processing buildings"):
 
             data = {}
             obj_id =str(obj[Objects.ID])
@@ -437,7 +438,7 @@ def derive_hvac(objects,capacitance_factor,resistance_factor,ventilation_mode,me
             obj[Objects.POWER_COOLING]  = detect_upper_limit(real_demand[f"{Types.COOLING}_{Columns.DEMAND}[W]"])
             
             
-            print(f"Processing ID:{obj_id}, year:{obj_year}")
+            #print(f"Processing ID:{obj_id}, year:{obj_year}")
 
             #Add Temperature Setpoints
             #df_setpoints=pd.read_csv(f"{temperature_setpoints_folder}/{obj_id}.csv")
@@ -479,7 +480,6 @@ def derive_hvac(objects,capacitance_factor,resistance_factor,ventilation_mode,me
             df_hvac.to_csv(f"{hvac_folder}/{method}/{obj_id}_{obj_year}.csv",index=False)
 
 def summarize_hvac(objects,method:str=Columns.OCCUPANCY_GEOMA):
-    print(f"Summarize HVAC")
     objects=objects.copy()
     df_summary=pd.DataFrame(columns=[
     Objects.ID,
@@ -498,7 +498,7 @@ def summarize_hvac(objects,method:str=Columns.OCCUPANCY_GEOMA):
     Objects.TEMP_MIN
     ])
 
-    for idx,obj in objects.iterrows():
+    for idx,obj in tqdm.tqdm(objects.iterrows(), total=len(objects), desc="Summaryzing HVAC"):
         
         
         #print(f"Processing ID: {obj[Columns.ID]}, year:{obj["year"]}")
@@ -959,3 +959,16 @@ def melt_best_results(df_best:pd.DataFrame):
     output_df=output_df.reset_index()
     output_df.to_csv("all_hvac_objects.csv",index=False)
     return output_df
+
+
+def add_average_detected_occupancy(method=Columns.OCCUPANCY_GEOMA):
+    df=pd.read_csv("data/validation/objects_entise.csv")
+    df_occupancy=pd.read_csv("data/validation/occupancy/summary_occupancy.csv")
+    df_occupancy=df_occupancy.loc[df_occupancy["method"]==method]
+    df["average_occupancy"]=0
+    for idx,row in df.iterrows():
+        avg_occupancy=df_occupancy.loc[(df_occupancy["id"]==row["id"]),"average_occupancy"].mean()
+        df.at[idx,"average_occupancy"]=avg_occupancy
+    df.to_csv("data/validation/objects_entise_occupancy.csv",index=False)    
+
+add_average_detected_occupancy()
