@@ -374,7 +374,7 @@ def generate_ach_series():
     print("ACH time series generated in:", OUTPUT_FOLDER)
 
 
-generate_ach_series()
+#generate_ach_series()
 
 def total_window_area():
     df=pd.read_csv("data/validation/objects_entise.csv")

@@ -9,97 +9,78 @@ from filter import (filter_single_family_detached,
 from generate_typology import (calculate_rc,
                                generate_buildings,
                                generate_windows_tipology)
-from plot_results import barplot_ranking_fit_score, hvac_loads_comparison, normalized_boxplot_2, normalized_boxplot_3, plot_hvac_loads, normalized_boxplot
+from plot_results import (barplot_ranking_fit_score, distribution_thermal_props,
+                          hvac_loads_comparison,
+                          normalized_individual_boxplot,
+                          normalized_joint_boxplot, plot_bar_plot_resistance_capacitance, plot_us_buildings)
 from validate import (derive_hvac,
                       derive_internal_gains,
-                      derive_occupancy_schedule, derive_solar_gains, summarize_hvac, calculate_fit_score)
+                      derive_occupancy_schedule,
+                      derive_solar_gains,
+                      get_real_demand_files, melt_best_results,
+                      summarize_hvac, calculate_fit_score)
 
 
 climate_zone="marine"
 gains_per_person=65
-reduce_shading=0.2
+reduce_shading=1
 reduce_window_area=1
 ventilation_mode="typical"
 capacitance_factor=1
 resistance_factor=1
 
 
-objects = pd.read_csv("data/validation/objects_entise.csv")
 
-
-#objects=objects.loc[objects["year"]==1995]
 #filter_single_family_detached()
-##
+
 #get_simulated_years()
-#
+
 #generate_buildings()
-###
+
 #calculate_rc()
-###
+
 #generate_windows_tipology()
-#to_object_file()
-#
+
+#objects=to_object_file()
+
+objects=pd.read_csv("data/validation/objects_entise.csv")
+
+#objects=pd.read_csv("results/best_fit_score_geoma_vent_typical_wshade_1_warea_1_gpp_65_capac_1_resis_1.csv")
+#plot_us_buildings(objects)
+#get_real_demand_files(objects)
+
 #derive_occupancy_schedule(objects=objects)
-#
+
 #derive_internal_gains(objects=objects,gains_per_person=gains_per_person)
-#
-#derive_solar_gains(objects,reduce_window_area,reduce_shading)
-#
-#derive_hvac(objects,capacitance_factor=capacitance_factor,resistance_factor=resistance_factor,ventilation_mode=ventilation_mode,method=Columns.OCCUPANCY_GEOMA)
 
-#df=summarize_hvac(objects,Columns.OCCUPANCY_GEOMA)
-#
-#df_best,df_best_heating,df_best_cooling,fit_score,heating_error,cooling_error=calculate_fit_score(df,Columns.OCCUPANCY_GEOMA,name=f"vent_{ventilation_mode}_wshade_{reduce_shading}_warea_{reduce_window_area}_gpp_{gains_per_person}_capac_{capacitance_factor}_resis_{resistance_factor}")
-#barplot_ranking_fit_score(Columns.OCCUPANCY_GEOMA,name=f"vent_{ventilation_mode}_wshade_{reduce_shading}_warea_{reduce_window_area}_gpp_{gains_per_person}_capac_{capacitance_factor}_resis_{resistance_factor}")
-#hvac_loads_comparison(objects=df_best,res_factor=resistance_factor,cap_factor=capacitance_factor,solar_gains_factor=reduce_shading,method=Columns.OCCUPANCY_GEOMA)
+#derive_solar_gains(objects,reduce_shading)
 
-demand_folder="data/validation/demand"
-hvac_folder=f"data/validation/hvac"
-df_best=pd.read_csv(f"results/best_fit_score_geoma_vent_{ventilation_mode}_wshade_{reduce_shading}_warea_{reduce_window_area}_gpp_{gains_per_person}_capac_{capacitance_factor}_resis_{resistance_factor}.csv")
-dfs=[]
-for idx,obj in df_best.iterrows():
+derive_hvac(objects,capacitance_factor=capacitance_factor,resistance_factor=resistance_factor,ventilation_mode=ventilation_mode,method=Columns.OCCUPANCY_GEOMA)
 
-    obj_id =str(obj[Objects.ID])
-    obj_year=obj["year"]
-    obj_climate_zone=obj["climate_zone"]
+df_summary=summarize_hvac(objects,Columns.OCCUPANCY_GEOMA)
 
-    df_hvac=pd.read_csv(f"{hvac_folder}/{Columns.OCCUPANCY_GEOMA}/{obj_id}_{obj_year}.csv")
-    df_hvac_real=pd.read_csv(f"{demand_folder}/{obj_id}.csv")
+distribution_thermal_props(df_summary,thermal_prop=Objects.RESISTANCE)
+distribution_thermal_props(df_summary,thermal_prop=Objects.CAPACITANCE)
+plot_bar_plot_resistance_capacitance(df_summary)
 
-    df_hvac[Columns.DATETIME]=pd.to_datetime(df_hvac[Columns.DATETIME])
-    df_hvac_real[Columns.DATETIME]=pd.to_datetime(df_hvac_real[Columns.DATETIME])
+df_best=calculate_fit_score(df_summary,Columns.OCCUPANCY_GEOMA,name=f"vent_{ventilation_mode}_wshade_{reduce_shading}_warea_{reduce_window_area}_gpp_{gains_per_person}_capac_{capacitance_factor}_resis_{resistance_factor}")
 
-    
-    df_hvac_real=df_hvac_real.rename(columns={f"{Types.HEATING}_{Columns.DEMAND}[W]":f"real_{Types.HEATING}_{Columns.DEMAND}[W]"})
-    df_hvac_real=df_hvac_real.rename(columns={f"{Types.COOLING}_{Columns.DEMAND}[W]":f"real_{Types.COOLING}_{Columns.DEMAND}[W]"})
-    df_hvac_real=df_hvac_real[[Columns.DATETIME,f"real_{Types.HEATING}_{Columns.DEMAND}[W]",f"real_{Types.COOLING}_{Columns.DEMAND}[W]"]]
+barplot_ranking_fit_score(Columns.OCCUPANCY_GEOMA,name=f"vent_{ventilation_mode}_wshade_{reduce_shading}_warea_{reduce_window_area}_gpp_{gains_per_person}_capac_{capacitance_factor}_resis_{resistance_factor}")
+
+hvac_loads_comparison(objects=df_best,res_factor=resistance_factor,cap_factor=capacitance_factor,solar_gains_factor=reduce_shading,method=Columns.OCCUPANCY_GEOMA)
+
+df_melt_best_results=melt_best_results(df_best)
+
+normalized_individual_boxplot(df_melt_best_results)
+normalized_joint_boxplot(df_melt_best_results)
 
 
-    
-    df_hvac=df_hvac.rename(columns={f"{Types.HEATING}_{Columns.DEMAND}[W]":f"simulated_{Types.HEATING}_{Columns.DEMAND}[W]"})
-    df_hvac=df_hvac.rename(columns={f"{Types.COOLING}_{Columns.DEMAND}[W]":f"simulated_{Types.COOLING}_{Columns.DEMAND}[W]"})
-    df_hvac=df_hvac[[Columns.DATETIME,f"simulated_{Types.HEATING}_{Columns.DEMAND}[W]",f"simulated_{Types.COOLING}_{Columns.DEMAND}[W]"]]
 
 
-    df=pd.merge(df_hvac,df_hvac_real,on=Columns.DATETIME, how="outer")
-
-    df[Objects.ID]=obj_id
-    
-    df["year"]=obj_year
-    
-    df["climate_zone"]=obj_climate_zone
-
-    df=df.set_index(Columns.DATETIME)
-
-    dfs.append(df)
 
 
-df_all_hvac=pd.concat(dfs, axis=0)
 
-df_all_hvac=df_all_hvac.reset_index()
 
-normalized_boxplot_2(df_all_hvac)
-normalized_boxplot_3(df_all_hvac)
 
 
 
