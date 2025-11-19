@@ -281,7 +281,6 @@ def derive_internal_gains(objects,gains_per_person):
         df.to_csv(f"data/validation/internal_gains/{Columns.OCCUPANCY_PHT}/{obj_id}.csv")
 
 def derive_solar_gains(objects, shading_factor):
-    print("Solar Gains")
     objects = objects.copy()
     solar_gains_generator = SolarGainsPVLib()
 
@@ -302,11 +301,9 @@ def derive_solar_gains(objects, shading_factor):
     warmer_zones = {"mixed dry", "hot dry", "hot humid"}
     neutral_zones = {"marine"}
 
-    for idx, obj in objects.iterrows():
+    for idx, obj in tqdm.tqdm(objects.iterrows(), total=len(objects), desc="Solar Gains calculation"):
 
         cz = str(obj["climate_zone"]).lower()
-
-        print(f"Processing ID:{obj[Columns.ID]}, year:{obj['year']}, CZ:{cz}")
 
         # -------------------------------------------------------
         # Build climate-zone-dependent curves
@@ -327,12 +324,12 @@ def derive_solar_gains(objects, shading_factor):
 
             elif cz in warmer_zones:
                 # Warm zones → restrict summer gain, allow winter gain
-                hot_final *= 1           # eliminate summer gains entirely
+                hot_final *= 1         # eliminate summer gains entirely
                 cold_final *= 1        # strong winter solar contribution allowed
 
             elif cz in neutral_zones:
                 # Marine → mild correction
-                hot_final *= 1
+                hot_final *=1
                 cold_final *= 1
 
             else:
@@ -380,12 +377,10 @@ def derive_solar_gains(objects, shading_factor):
         out_path = f"{solar_gains_folder}/{obj[Objects.ID]}_{obj['year']}.csv"
         df_solar_gains.to_csv(out_path, index=False)
 
-        print(f"✔ Saved: {out_path}")
 
         
 
 def derive_hvac(objects,capacitance_factor,resistance_factor,ventilation_mode,method:str=Columns.OCCUPANCY_GEOMA):
-    print(f"HVAC calculation: {method}")
     
     objects=objects.copy()
 
@@ -403,7 +398,9 @@ def derive_hvac(objects,capacitance_factor,resistance_factor,ventilation_mode,me
                      Objects.FILE,
                      Objects.AREA,
                      "stories",
-                     "climate_zone"]]
+                     "climate_zone",
+                     f"offset_{Objects.TEMP_MAX}",
+                     f"offset_{Objects.TEMP_MIN}"]]
     
     objects[Types.HVAC]             =   "1r1c"
     objects[Objects.GAINS_INTERNAL] =   Objects.GAINS_INTERNAL
@@ -419,14 +416,14 @@ def derive_hvac(objects,capacitance_factor,resistance_factor,ventilation_mode,me
 
     full_index = pd.date_range(start="2018-01-01 00:00:00", end="2018-12-31 23:45:00", freq="15min",name=Columns.DATETIME)
 
-    for idx,obj in tqdm.tqdm(objects.iterrows(), total=len(objects), desc="Processing buildings"):
+    for idx,obj in tqdm.tqdm(objects.iterrows(), total=len(objects), desc="HVAC calculation"):
 
             data = {}
             obj_id =str(obj[Objects.ID])
             obj_year=obj["year"]
 
-            obj[Objects.TEMP_MAX]=obj[Objects.TEMP_MAX]+273.15
-            obj[Objects.TEMP_MIN]=obj[Objects.TEMP_MIN]+273.15
+            obj[Objects.TEMP_MAX]=obj[Objects.TEMP_MAX]+obj[f"offset_{Objects.TEMP_MAX}"]+273.15
+            obj[Objects.TEMP_MIN]=obj[Objects.TEMP_MIN]-obj[f"offset_{Objects.TEMP_MIN}"]+273.15
             obj[Objects.TEMP_INIT] = (obj[Objects.TEMP_MAX]+obj[Objects.TEMP_MIN])/2
 
             obj[Objects.CAPACITANCE]=obj[Objects.CAPACITANCE]*capacitance_factor
@@ -554,7 +551,7 @@ def summarize_hvac(objects,method:str=Columns.OCCUPANCY_GEOMA):
         df_summary.at[idx,f"{Types.COOLING}_{Columns.DEMAND}_real[kWh]/{Objects.AREA}"]     =   round(((df_hvac_real[f"{Types.COOLING}_{Columns.DEMAND}[W]"].sum()/4)/1000)/obj_area,1)
 
         
-    #df_summary.to_csv(f"results/hvac_summary_{method}.csv",index=False)
+    df_summary.to_csv(f"results/hvac_summary_{method}.csv",index=False)
     return df_summary
 
 
@@ -590,14 +587,13 @@ def format_weather_timeseries():
         df.to_csv(f"{weather_folder}/cleaned/{file}",index=False)
 
 def get_windows(obj):
-    df_windows=pd.read_csv(f"data/validation/tipology/windows.csv")
+    df_windows=pd.read_csv(f"data/validation/tipology/windows_nrel.csv")
     mask = (
         (df_windows["year"].astype(int) == int(obj["year"])) &
         (df_windows[Objects.ID].astype(str) == str(obj[Objects.ID]))
     )
     df_windows = df_windows.loc[mask]   
     return df_windows
-
 
 def calculate_dni(df_weather: pd.DataFrame, object,method):
 
@@ -689,8 +685,6 @@ def calculate_dhi(df_weather: pd.DataFrame, object):
     
 
     return df_weather
-
-
 
 def set_datetime_index(df):
     df[Columns.DATETIME]=pd.to_datetime(df[Columns.DATETIME])
@@ -817,7 +811,6 @@ def get_real_demand_files(objects:pd.DataFrame):
                 real_demand[col] = series
         real_demand.to_csv(f"{demand_folder}/{obj[Columns.ID]}.csv",index=False)
 
-
 def calculate_fit_score(df,method=Columns.OCCUPANCY_GEOMA,name=""):
     #df=pd.read_csv(f"results/hvac_summary_{method}.csv")
 
@@ -869,7 +862,6 @@ def calculate_fit_score(df,method=Columns.OCCUPANCY_GEOMA,name=""):
 
     print(f"Best fit for this iteration: {fit_score}")
     return df_best_fit_score
-
 
 def detect_upper_limit(s: pd.Series) -> float:
     # Ignore empty or all-zero series
@@ -971,4 +963,4 @@ def add_average_detected_occupancy(method=Columns.OCCUPANCY_GEOMA):
         df.at[idx,"average_occupancy"]=avg_occupancy
     df.to_csv("data/validation/objects_entise_occupancy.csv",index=False)    
 
-add_average_detected_occupancy()
+#add_average_detected_occupancy()

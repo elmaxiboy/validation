@@ -251,8 +251,6 @@ def distribution_thermal_props(df, thermal_prop=Objects.RESISTANCE, mode: str = 
     g.savefig(f"{mode}plot_{thermal_prop}.png", dpi=300)
     plt.close()
 
-
-
 def distribution_area(mode:str="box"):
 
     df = pd.read_csv("results/hvac_summary_geoma.csv")
@@ -458,7 +456,6 @@ def plot_box_plot_demand_by_area(method):
     plt.tight_layout() 
 
     plt.savefig(f"results/images/boxplots/{method}/boxplot_cooling_by_climate_zone", dpi=300)
-    
 
 #plot_box_plot_demand_by_area(Columns.OCCUPANCY_GEOMA)
 
@@ -536,8 +533,6 @@ def scatter_plot_demand_real_vs_simulated(method):
         
         g.savefig(f"results/images/scatterplots/{method}/demand_comparison_{cz}.png")
 
-
-
 def scatter_plot_max_load_real_vs_simulated(method):
     df = pd.read_csv(f"results/hvac_summary_{method}.csv")
 
@@ -611,7 +606,6 @@ def scatter_plot_max_load_real_vs_simulated(method):
         g.set_axis_labels("Real Max. Load [kW]", "Simulated Max. Load [kW]")
         
         g.savefig(f"results/images/scatterplots/{method}/max_load_comparison_{cz}.png")
-
 
 def barplot_ranking_fit_score(method,name):
 
@@ -726,9 +720,6 @@ def barplot_ranking_fit_score(method,name):
     plt.savefig(f"relative_error_{method}.png", dpi=300)
     plt.close()
 
-
-
-
 def hvac_loads_comparison(objects,res_factor,cap_factor,solar_gains_factor,method= Columns.OCCUPANCY_GEOMA):
     print(f"Plotting HVAC timeseries {method}")
     objects=objects.copy()
@@ -837,7 +828,6 @@ def hvac_load_real(method:str=Columns.OCCUPANCY_GEOMA,climate_zone:str="marine")
         plt.savefig(f"results/images/timeseries/{method}/{climate_zone}/{id}_{year}_real_hvac_.png", dpi=300)
         plt.close
 
-
 def normalized_boxplot(df: pd.DataFrame):
     """
     Create a normalized boxplot comparing simulated vs real HVAC demand (heating, cooling, or combined),
@@ -899,8 +889,6 @@ def normalized_boxplot(df: pd.DataFrame):
             plt.savefig(f"normalized_boxplots_{cz}_{id}.png")
             plt.close()
 
-
-
 def build_large_distinct_palette():
     """Combine many categorical colormaps into a large distinct palette."""
     cmaps = ["tab20", "tab20b", "tab20c", "Set3", "Set2", "Set1", "Paired"]
@@ -915,7 +903,6 @@ def build_large_distinct_palette():
     np.random.shuffle(big)
 
     return big
-
 
 def normalized_individual_boxplot(df: pd.DataFrame):
     """
@@ -1007,10 +994,6 @@ def normalized_individual_boxplot(df: pd.DataFrame):
         plt.tight_layout()
         plt.savefig(f"normalized_boxplot_{cz}.png", dpi=300)
         plt.close()
-
-
-
-
 
 def smart_offset(x, y, scale=0.03):
     """
@@ -1182,7 +1165,6 @@ def normalized_joint_boxplot(df: pd.DataFrame):
         build_plot(heat_sim_list, heat_real_list, cz, "Heating Only", "HEATING", "heating")
         build_plot(cool_sim_list, cool_real_list, cz, "Cooling Only", "COOLING", "cooling")
 
-
 from matplotlib.colors import ListedColormap
 
 def plot_us_buildings(df):
@@ -1322,7 +1304,6 @@ def plot_us_buildings(df):
     plt.savefig("geo_distribution_climate_zones.png", dpi=300, bbox_inches="tight")
     plt.close()
 
-
 def plot_internal_gains(df):
 
     climate_order = [
@@ -1404,21 +1385,24 @@ def plot_internal_gains(df):
     agg_df.to_csv("aggregated_internal_gains.csv", index=False)
     plt.savefig("internal_gains_summary.png")
 
-
-
-def plot_solar_gains(df):
-
+def plot_solar_gains_collapsed(df):
     climate_order = [
-        "very cold",
-        "cold",
-        "marine",
-        "mixed dry",
-        "hot humid",
-        "hot dry"
+        "very cold", "cold", "marine",
+        "mixed dry", "hot humid", "hot dry"
     ]
-    # -------------------------------------------------------------
-    # 1) Define year groups
-    # -------------------------------------------------------------
+
+    palette = [
+    "#FFE8A3",  # very cold  (light warm yellow)
+    "#FFC85C",  # cold       (strong yellow-orange)
+    "#FFA22C",  # marine     (medium orange)
+    "#FF7A1A",  # mixed dry  (deep orange)
+    "#E8501B",  # hot humid  (red-orange)
+    "#B22222",  # hot dry    (firebrick red, very visible)
+]
+
+    # ----------------------------------
+    # 1) Year groups
+    # ----------------------------------
     def assign_year_group(year):
         if year < 1950:
             return "1900–1950"
@@ -1429,76 +1413,113 @@ def plot_solar_gains(df):
 
     df["year_group"] = df["year"].apply(assign_year_group)
 
-    # -------------------------------------------------------------
-    # 2) Load each CSV and compute monthly means per building
-    # -------------------------------------------------------------
+    # ----------------------------------
+    # 2) Load monthly solar gains
+    # ----------------------------------
     monthly_records = []
-
-    for _, row in  tqdm.tqdm(df.iterrows(), total=len(df), desc="Processing buildings"):
+    for _, row in tqdm.tqdm(df.iterrows(), total=len(df)):
         id  = row["id"]
         cz  = row["climate_zone"]
-        year=row["year"]
+        year = row["year"]
         group = row["year_group"]
         window_area = row["window_area[m2]"]
-        csv_path = f"data/validation/solar_gains/{id}_{year}.csv"
 
-        # Load timeseries (assume columns: datetime, solar_gain)
-        ts = pd.read_csv(csv_path, parse_dates=["datetime"])
+        ts = pd.read_csv(
+            f"data/validation/solar_gains/{id}_{year}.csv",
+            parse_dates=["datetime"]
+        ).set_index("datetime")
 
-        # Ensure correct datetime index
-        ts = ts.set_index("datetime")
-
-        # Monthly mean solar gains
         monthly = (ts["gains_solar[W]"] / window_area).resample("M").mean()
-        monthly = monthly.to_frame("gains_solar[W]")
-        monthly["month"] = monthly.index.month
+        monthly = monthly.rename("gains_solar[W]").reset_index()
+        monthly["month"] = monthly["datetime"].dt.month
         monthly["climate_zone"] = cz
         monthly["year_group"] = group
         monthly["id"] = id
 
         monthly_records.append(monthly)
 
-    # Combine
-    monthly_df = pd.concat(monthly_records).reset_index(drop=True)
+    monthly_df = pd.concat(monthly_records, ignore_index=True)
 
-    # -------------------------------------------------------------
-    # 3) Aggregate over buildings per climate zone & year group
-    # -------------------------------------------------------------
+    # ----------------------------------
+    # 3) Aggregate
+    # ----------------------------------
     agg_df = (
-        monthly_df
-        .groupby(["climate_zone", "year_group", "month"])["gains_solar[W]"]
-        .mean()
+        monthly_df.groupby(["year_group", "climate_zone", "month"])
+        ["gains_solar[W]"].mean()
         .reset_index()
     )
 
-    # Ensure month order
-    agg_df = agg_df.sort_values("month")
+    # ----------------------------------
+    # 4) Sort bars within each group/month
+    # ----------------------------------
+    sorted_agg = []
+    for group in agg_df["year_group"].unique():
+        sub_g = agg_df[agg_df["year_group"] == group]
+        for m in range(1, 13):
+            sub_m = sub_g[sub_g["month"] == m]
+            sub_m = sub_m.sort_values("gains_solar[W]", ascending=True)
+            sorted_agg.append(sub_m)
+    sorted_agg = pd.concat(sorted_agg)
 
-    # -------------------------------------------------------------
-    # 4) Plot — Facet grid: rows = climate zones, columns = year groups
-    # -------------------------------------------------------------
+    # ----------------------------------
+    # 5) Plot (short bars now visible!)
+    # ----------------------------------
     sns.set_theme(style="whitegrid")
 
-    g = sns.catplot(
-        data=agg_df,
-        x="month",
-        y="gains_solar[W]",
-        col="year_group",
-        row="climate_zone",
-        kind="bar",
-        color="gold",
-        row_order=climate_order,
-        height=3.2,
-        aspect=1.3,
+    fig, axes = plt.subplots(
+        nrows=1, ncols=3,
+        figsize=(18, 4.8),
         sharey=True
     )
 
-    g.set_axis_labels("Month", "Average Solar Gains (W/m2)")
-    g.set_titles("{row_name} | {col_name}")
-    g.figure.suptitle("Average monthly solar gains, normalized by total window area", y=0.98, fontsize=18)
-    g.figure.subplots_adjust(top=0.93)
-    agg_df.to_csv("aggregated_solar_gains.csv", index=False)
-    plt.savefig("solar_gains_summary.png")
+    year_groups = sorted(df["year_group"].unique())
+
+    for ax, group in zip(axes, year_groups):
+
+        sub = sorted_agg[sorted_agg["year_group"] == group]
+
+        # use tiny dodge, not 0
+        sns.barplot(
+            data=sub,
+            x="month",
+            y="gains_solar[W]",
+            hue="climate_zone",
+            dodge=0.15,                # <-- key: small offset reveals short bars
+            palette=palette,
+            ax=ax,
+            linewidth=0.5, edgecolor=".5",
+        )
+
+        ax.set_title(group, fontsize=13)
+        ax.set_xlabel("Month")
+
+        # remove per-axes legends
+        if ax.get_legend() is not None:
+            ax.get_legend().remove()
+
+    axes[0].set_ylabel("Avg. Solar Gains (W/m2)")
+
+    # ----------------------------------
+    # 6) Single external legend
+    # ----------------------------------
+    fig.legend(
+        labels=climate_order,
+        handles=[plt.Rectangle((0,0),1,1,color=c) for c in palette],
+        loc="center right",
+        bbox_to_anchor=(0.99, 0.68)
+    )
+
+    fig.suptitle(
+        "Monthly solar gains by construction year",
+        fontsize=16
+    )
+
+    plt.tight_layout(rect=[0, 0, 1, 1])
+    plt.savefig("solar_gains_overlay_sorted.png", dpi=300)
+
+
+
+plot_solar_gains_collapsed(pd.read_csv("data/validation/objects_entise.csv"))
 
 def plot_ventilation_rate(df):
 
@@ -1509,7 +1530,6 @@ def plot_ventilation_rate(df):
         "mixed dry",
         "hot dry",
         "hot humid",
-
     ]
 
     # -------------------------------------------------------------
@@ -1579,10 +1599,50 @@ def plot_ventilation_rate(df):
     #g.figure.subplots_adjust(top=0.85, right=0.95, left=0.25, bottom=0.15)
     agg_df.to_csv("aggregated_ventilation_rate.csv", index=False)
     plt.savefig("aggregated_ventilation_rate.png")
-
+#plot_ventilation_rate(pd.read_csv("data/validation/objects_entise.csv"))
 #plot_internal_gains(pd.read_csv("data/validation/objects_entise.csv"))
 #plot_solar_gains(pd.read_csv("data/validation/objects_entise.csv"))
 
+def dwelling_area_distribution(df):
+
+    sns.set_theme(style="whitegrid")
+
+    climate_order = [
+        "very cold",
+        "cold",
+        "marine",
+        "mixed dry",
+        "hot dry",
+        "hot humid",
+    ]
+
+    g = sns.catplot(
+        data=df,
+        y="climate_zone",
+        x="area[m2]",
+        kind="violin",
+        height=4,
+        color="tab:cyan",
+        aspect=1.3,
+        order=climate_order,     # <-- Correct ordering parameter
+    )
+
+    # Set axis labels
+    g.set_axis_labels("Dwelling Area (m²)", "Climate Zone")
+
+    # Increase grid resolution
+    ax = g.ax
+    ax.xaxis.set_major_locator(plt.MaxNLocator(10))
+    ax.grid(True, which="major", linewidth=0.6)
+
+    # Title + spacing
+    g.figure.suptitle("Dwellings Area Distribution", y=0.98, fontsize=14)
+    g.figure.subplots_adjust(top=0.85, right=0.95, left=0.25, bottom=0.15)
+    plt.tight_layout()
+
+    plt.savefig("dwelling_area_distribution.png", dpi=300)
+
+#dwelling_area_distribution(pd.read_csv("data/validation/objects_entise.csv"))
 
 def windows_area_distribution(df):
 
@@ -1676,9 +1736,7 @@ def occupancy_detected_distribution(df):
 
     plt.savefig("occupancy_distribution.png", dpi=300)
 
-
-
-plot_ventilation_rate(pd.read_csv("data/validation/objects_entise.csv"))
+#plot_ventilation_rate(pd.read_csv("data/validation/objects_entise.csv"))
 
 
 #    ################## BEST HEATING DEMAND ###########################
@@ -1760,3 +1818,96 @@ plot_ventilation_rate(pd.read_csv("data/validation/objects_entise.csv"))
 #    plt.tight_layout()
 #    plt.savefig(f"results/images/barplots/cooling_score_{method}.png", dpi=300)
 #    plt.close()
+
+def boxplot_hvac_demand():
+    df = pd.read_csv("results/hvac_summary_geoma.csv")
+    df = df[[
+        "id",
+        "climate_zone",
+        "heating_demand_simulated[kWh]/area[m2]",
+        "cooling_demand_simulated[kWh]/area[m2]"
+    ]]
+    df = df.drop_duplicates(subset="id", keep="first")
+
+    climate_order = [
+        "very cold",
+        "cold",
+        "marine",
+        "mixed dry",
+        "hot humid",
+        "hot dry"
+    ]
+
+    # Melt
+    df_melted = df.melt(
+        id_vars=["climate_zone"],
+        value_vars=[
+            "heating_demand_simulated[kWh]/area[m2]",
+            "cooling_demand_simulated[kWh]/area[m2]"
+        ],
+        var_name="metric",
+        value_name="kWh/m2"
+    )
+
+    # Label heating vs cooling
+    df_melted["Type"] = df_melted["metric"].apply(
+        lambda x: "Heating" if "heating" in x.lower()
+        else "Cooling"
+    )
+
+    # Correct palette
+    palette = {
+        "Heating": "#7F0D00",  # red
+        "Cooling": "#004D81",  # blue
+    }
+
+    # Subplots (one per climate zone)
+    n_cols = len(climate_order)
+    fig, axes = plt.subplots(
+        nrows=1,
+        ncols=n_cols,
+        figsize=(3 * n_cols, 5),
+        sharey=True
+    )
+
+    if n_cols == 1:
+        axes = [axes]
+
+    for ax, cz in zip(axes, climate_order):
+        subset = df_melted[df_melted["climate_zone"] == cz]
+
+        sns.boxplot(
+            data=subset,
+            x="Type",
+            y="kWh/m2",       
+            palette=palette,
+            ax=ax,
+            showfliers=False
+        )
+
+        ax.set_title(cz)
+        ax.set_xlabel("")
+        ax.set_xticklabels([])
+
+    # Legend
+    from matplotlib.patches import Patch
+    legend_elements = [
+        Patch(facecolor=palette[name], label=name)
+        for name in palette
+    ]
+
+    fig.legend(
+        handles=legend_elements,
+        title="HVAC Type",
+        loc="center right",
+        bbox_to_anchor=(0.99, 0.75),
+        frameon=True
+    )
+
+    fig.suptitle("Distribution of total real HVAC demand for 2018", fontsize=16)
+    plt.tight_layout(rect=[0, 0, 1, 1])
+
+    plt.savefig("real_hvac_demand.png", dpi=300)
+    plt.close()
+
+boxplot_hvac_demand()
