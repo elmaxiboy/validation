@@ -1,199 +1,77 @@
+import logging
+import os
+
 import pandas as pd
 from entise.constants.columns import Columns
 from entise.constants import Types
 from entise.constants.objects import Objects
-
-from filter import (filter_single_family_detached,
-                    get_simulated_years,
-                    to_object_file)
-from generate_typology import (calculate_rc,
-                               generate_buildings,
-                               generate_windows_tipology)
-from plot_results import (barplot_ranking_fit_score, distribution_thermal_props,
-                          hvac_loads_comparison,
-                          normalized_individual_boxplot,
-                          normalized_joint_boxplot, plot_bar_plot_resistance_capacitance, plot_us_buildings)
-from validate import (derive_hvac,
-                      derive_internal_gains,
-                      derive_occupancy_schedule,
-                      derive_solar_gains,
-                      get_real_demand_files, melt_best_results,
-                      summarize_hvac, calculate_fit_score)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-climate_zone="marine"
-gains_per_person=65
-reduce_shading=1
-reduce_window_area=1
-ventilation_mode="optimal"
-capacitance_factor=1
-resistance_factor=1
-
-#filter_single_family_detached()
-
-#get_simulated_years()
-
-#generate_buildings()
-
-#calculate_rc()
-
-#generate_windows_tipology()
-
-#objects=to_object_file()
-
-objects=pd.read_csv("data/validation/objects_entise.csv")
-
-#objects=pd.read_csv("results/best_fit_score_geoma_vent_typical_wshade_1_warea_1_gpp_65_capac_1_resis_1.csv")
-#plot_us_buildings(objects)
-#get_real_demand_files(objects)
-
-#derive_occupancy_schedule(objects=objects)
-#
-derive_internal_gains(objects=objects,gains_per_person=gains_per_person)
-#
-#derive_solar_gains(objects,reduce_shading)
-#
-#derive_hvac(objects,capacitance_factor=capacitance_factor,resistance_factor=resistance_factor,ventilation_mode=ventilation_mode,method=Columns.OCCUPANCY_GEOMA)
-
-df_summary=summarize_hvac(objects,Columns.OCCUPANCY_GEOMA)
-
-#distribution_thermal_props(df_summary,thermal_prop=Objects.RESISTANCE)
-#distribution_thermal_props(df_summary,thermal_prop=Objects.CAPACITANCE)
-#plot_bar_plot_resistance_capacitance(df_summary)
-
-df_best=calculate_fit_score(df_summary,Columns.OCCUPANCY_GEOMA,name=f"vent_{ventilation_mode}_wshade_{reduce_shading}_warea_{reduce_window_area}_gpp_{gains_per_person}_capac_{capacitance_factor}_resis_{resistance_factor}")
-
-#barplot_ranking_fit_score(Columns.OCCUPANCY_GEOMA,name=f"vent_{ventilation_mode}_wshade_{reduce_shading}_warea_{reduce_window_area}_gpp_{gains_per_person}_capac_{capacitance_factor}_resis_{resistance_factor}")
-
-#hvac_loads_comparison(objects=df_best,res_factor=resistance_factor,cap_factor=capacitance_factor,solar_gains_factor=reduce_shading,method=Columns.OCCUPANCY_GEOMA)
-
-df_melt_best_results=melt_best_results(df_best)
-normalized_joint_boxplot(df_melt_best_results)
-normalized_individual_boxplot(df_melt_best_results)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#The Intuition Behind the Quartile Analysis
-#
-#In your context, you have many buildings within each climate zone, and for each one you can compute a relationship between simulated and real HVAC demand (normalized over time).
-#
-#Now, if you plot every building individually, you get dozens of overlapping lines — messy and hard to interpret.
-#The quartile analysis provides a statistical summary of all those lines to see how consistent the simulation model is across buildings.
-#
-#⚙️ How It Works
-#
-#For each time step (or normalized progress point), say 0% → 100% of the total demand period,
-#you look at the cumulative normalized HVAC demand for all buildings.
-#
-#Example: at the halfway point (x = 0.5 simulated demand), some buildings have reached 0.4 real demand, others 0.6, etc.
-#
-#Across those values, you compute percentiles (quantiles):
-#
-#5% (lower extreme)
-#
-#25% (lower quartile)
-#
-#50% (median)
-#
-#75% (upper quartile)
-#
-#95% (upper extreme)
-#
-#Then, instead of plotting every building, you plot:
-#
-#A shaded region between 25–75% → shows where half of buildings lie (interquartile range, IQR).
-#
-#A lighter region between 5–95% → shows where most buildings lie (main variability range).
-#
-#The median line → shows the “typical” or central trend.
-#
-#📈 What You Can Conclude from It
-#1. Model Accuracy (Bias)
-#
-#If the median line lies close to the perfect-match line (the diagonal),
-#it means that on average, the simulation matches reality quite well.
-#
-#If the median is below the diagonal → simulated HVAC demand is lower than real.
-#If it’s above → simulation overestimates demand.
-#
-#2. Model Consistency (Spread)
-#
-#The width of the quartile bands shows how consistent the model is across buildings:
-#
-#Narrow bands → most buildings behave similarly → the model generalizes well across the zone.
-#
-#Wide bands → large differences between buildings → the model might fit some building types better than others.
-#
-#3. Extreme Outliers
-#
-#The 5–95% shaded region indicates the total variability — if it’s very wide,
-#there are outliers or special cases (perhaps unusual building envelopes or occupancy patterns).
-#
-#4. Systematic Temporal Differences
-#
-#If the deviation changes along the x-axis (e.g., early/late in the demand curve),
-#it means the simulation performs differently during low-load vs. peak-load periods.
-#
-#Example:
-#
-#If it’s close to perfect at the beginning but diverges at high loads →
-#your model may underestimate peak HVAC demands.
-#
-#💡 Summary Table
-#Feature	Interpretation
-#Median near diagonal	Simulation accurate on average
-#Median below diagonal	Simulation underestimates HVAC demand
-#Median above diagonal	Simulation overestimates HVAC demand
-#Narrow quartile bands	Model consistent across buildings
-#Wide quartile bands	High variability — model less general
-#Asymmetric bands	Systematic bias (e.g., worse for high demand periods)
-#🧩 Why It’s So Useful
-#
-#This method gives a clear, aggregated diagnostic across a population of buildings:
-#
-#It combines bias (systematic error) and variance (consistency) into one figure.
-#
-#It’s a visual statistical validation of your model — much more informative than showing individual lines or a single RMSE value.
+from entise.core.generator import Generator
+from entise.methods.auxiliary.internal.strategies import InternalOccupancy
+from entise.methods.hvac                       import R1C1
+from entise.methods.auxiliary.ventilation.strategies       import VentilationTimeSeries
+from teaser.project import Project
+
+# Load data
+cwd = f""
+objects = pd.read_csv(os.path.join(cwd, "object.csv"))
+data = {}
+
+data_folder = "data"
+for file in os.listdir(os.path.join(cwd, data_folder)):
+    if file.endswith(".csv"):
+        name = file.split(".")[0]
+        data[name] = pd.read_csv(os.path.join(os.path.join(cwd, data_folder, file)), parse_dates=True)
+
+print("Loaded data keys:", list(data.keys()))
+print(objects)
+
+gen = Generator(logging_level=logging.WARNING)
+gen.add_objects(objects)
+
+internal_occupancy_gen  =   InternalOccupancy()
+hvac_r1c1_gen           =   R1C1()
+
+summary, dfs = gen.generate(data, workers=1)
+
+for obj_id,ts in dfs.items():
+    
+    obj                         =   objects[objects[Objects.ID]==obj_id].iloc[0]
+    
+    ts[Types.OCCUPANCY]         =   ts[Types.OCCUPANCY].squeeze("columns")
+    ts[Objects.GAINS_INTERNAL]  =   internal_occupancy_gen.generate(obj,ts)
+    
+    prj                         =   Project()
+    prj.add_residential(
+            construction_data                   =   'tabula_de_standard',
+            geometry_data                       =   'tabula_de_single_family_house',
+            name                                =   obj_id,
+            year_of_construction                =   obj["year"],
+            number_of_floors                    =   obj["stories"],
+            height_of_floors                    =   obj[Objects.HEIGHT],
+            net_leased_area                     =   obj[Objects.AREA],
+            inner_wall_approximation_approach   =   "teaser_default",
+            )
+    prj.calc_all_buildings()
+    
+    bldg    =   prj.buildings[0]
+
+    bldg.calc_building_parameter(
+        number_of_elements  =   1, # aggregates to 1R, 1C
+        merge_windows       =   True,
+        used_library        =   "IBPSA"
+        )
+    
+    zone    =   bldg.thermal_zones[0]
+    m       =   zone.model_attr
+
+    resistance_total    =   float(m.r_total_ow)
+    capacitance_air     =   zone.volume * zone.density_air * zone.heat_capac_air
+    capacitance_total   =   float(m.c1_ow) + capacitance_air
+    
+    obj[Objects.RESISTANCE]     =   resistance_total
+    obj[Objects.CAPACITANCE]    =   capacitance_total 
+
+    ts[Types.HVAC]=hvac_r1c1_gen.generate(obj,data)
+
+print("Summary:")
+print(summary)

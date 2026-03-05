@@ -1,0 +1,2 @@
+id,year,electricity,electricity:filename,occupancy,inhabitants,gains_internal[W]_per_person[W],weather,area[m2],height[m],latitude[degree],longitude[degree],min_temperature[C],max_temperature[C],stories
+68993_1918,1918,file,68993_demand_1_occupants,geoma,1,65,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1
