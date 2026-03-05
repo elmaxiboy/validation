@@ -52,7 +52,6 @@ def generate_buildings():
 
     prj.save_project("tipology","data/validation/tipology")
 
-
 def calculate_rc():
 
     df= pd.read_csv("data/validation/single_family_detached.csv")
@@ -210,7 +209,6 @@ def generate_windows_tipology():
     
     df_windows.to_csv("data/validation/tipology/windows.csv",index=False)
 
-
 def estimate_window_areas_nrel():
     df=pd.read_csv("data/validation/objects_entise.csv")
     df_windows=pd.read_csv("data/validation/tipology/windows.csv")
@@ -269,7 +267,7 @@ def estimate_window_areas_nrel():
             })
 
     df_nrel_windows=pd.DataFrame(results)
-    df_windows=df_windows.merge(df_nrel_windows,on=["id","year","orientation[degree]"],how="outer")
+    df_windows=df_windows.merge(df_nrel_windows,on=["id","year","orientation[degree]"],how="left")
     df_windows.to_csv("data/validation/tipology/windows_nrel.csv",index=False)
 
 

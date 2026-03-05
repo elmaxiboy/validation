@@ -1,6 +1,7 @@
 
 import logging
 import os
+import time
 import numpy
 import pandas as pd
 
@@ -151,8 +152,10 @@ def derive_occupancy_schedule(objects:pd.DataFrame):
 
 
     processed_ids = set()
+    durations = []
 
-    for idx,obj in objects.iterrows():
+    for idx,obj in tqdm.tqdm(objects.iterrows(), total=len(objects), desc="Detecting Occupancy"):
+        t0 = time.perf_counter()
         data = {}
 
         obj_id = str(obj[Objects.ID])
@@ -210,13 +213,15 @@ def derive_occupancy_schedule(objects:pd.DataFrame):
         df[Columns.OCCUPANCY_PHT][Types.OCCUPANCY].to_csv(f"data/validation/{Types.OCCUPANCY}/{Columns.OCCUPANCY_PHT}/{obj_id}.csv")
     
         processed_ids.add(obj_id)
+        durations.append(time.perf_counter() - t0)
+
+    print("Average time per item:", sum(durations) / len(durations), "seconds")
+    print("Total time:", sum(durations), "seconds")
     
     df_summary.to_csv(f"data/validation/{Types.OCCUPANCY}/summary_{Types.OCCUPANCY}.csv",index=False)
 
 
 def derive_ventilation(obj,data):
-
-
 
     if os.path.exists(f"data/validation/ventilation/{obj[Columns.ID]}.csv"):
         df_ventilation=pd.read_csv(f"data/validation/ventilation/{obj[Columns.ID]}.csv")
@@ -257,12 +262,12 @@ def derive_internal_gains(objects,gains_per_person):
 
     objects[Objects.GAINS_INTERNAL_PER_PERSON]=gains_per_person #FISCHER NUMBER
 
-    for idx,obj in objects.iterrows():
+    durations = []
+    for idx,obj in tqdm.tqdm(objects.iterrows(), total=len(objects), desc="Internal Gains calculation"):
+        t0 = time.perf_counter()
         data = {}
         obj_id = str(obj["id"])
         inhabitants=obj[Objects.INHABITANTS]
-
-        print(f"Calculating internal gains for building:{obj_id}. {inhabitants} inhabitants.")
 
         #GEOMA-DERIVED OCCUPANCY
         data[Types.OCCUPANCY]=pd.read_csv(f"{occupancy_folder}/{Columns.OCCUPANCY_GEOMA}/{obj_id}.csv")
@@ -279,6 +284,10 @@ def derive_internal_gains(objects,gains_per_person):
         df=InternalOccupancy().generate(obj=obj.to_dict(),data=data)
 
         df.to_csv(f"data/validation/internal_gains/{Columns.OCCUPANCY_PHT}/{obj_id}.csv")
+        durations.append(time.perf_counter() - t0)
+
+    print("Average time per item:", sum(durations) / len(durations), "seconds")
+    print("Total time:", sum(durations), "seconds")
 
 def derive_solar_gains(objects, shading_factor):
     objects = objects.copy()
@@ -300,9 +309,9 @@ def derive_solar_gains(objects, shading_factor):
     colder_zones = {"cold", "very cold"}
     warmer_zones = {"mixed dry", "hot dry", "hot humid"}
     neutral_zones = {"marine"}
-
+    durations = []
     for idx, obj in tqdm.tqdm(objects.iterrows(), total=len(objects), desc="Solar Gains calculation"):
-
+        t0 = time.perf_counter()
         cz = str(obj["climate_zone"]).lower()
 
         # -------------------------------------------------------
@@ -377,8 +386,10 @@ def derive_solar_gains(objects, shading_factor):
         out_path = f"{solar_gains_folder}/{obj[Objects.ID]}_{obj['year']}.csv"
         df_solar_gains.to_csv(out_path, index=False)
 
+        durations.append(time.perf_counter() - t0)
 
-        
+    print("Average time per item:", sum(durations) / len(durations), "seconds")
+    print("Total time:", sum(durations), "seconds")    
 
 def derive_hvac(objects,capacitance_factor,resistance_factor,ventilation_mode,method:str=Columns.OCCUPANCY_GEOMA):
     
@@ -415,9 +426,9 @@ def derive_hvac(objects,capacitance_factor,resistance_factor,ventilation_mode,me
     
 
     full_index = pd.date_range(start="2018-01-01 00:00:00", end="2018-12-31 23:45:00", freq="15min",name=Columns.DATETIME)
-
+    durations = []
     for idx,obj in tqdm.tqdm(objects.iterrows(), total=len(objects), desc="HVAC calculation"):
-
+            t0 = time.perf_counter()
             data = {}
             obj_id =str(obj[Objects.ID])
             obj_year=obj["year"]
@@ -475,6 +486,10 @@ def derive_hvac(objects,capacitance_factor,resistance_factor,ventilation_mode,me
             df_hvac.reset_index(inplace=True)
             df_hvac[Columns.TEMP_IN]=df_hvac[Columns.TEMP_IN]-273.15
             df_hvac.to_csv(f"{hvac_folder}/{method}/{obj_id}_{obj_year}.csv",index=False)
+            durations.append(time.perf_counter() - t0)
+
+    print("Average time per item:", sum(durations) / len(durations), "seconds")
+    print("Total time:", sum(durations), "seconds")
 
 def summarize_hvac(objects,method:str=Columns.OCCUPANCY_GEOMA):
     objects=objects.copy()
@@ -496,13 +511,9 @@ def summarize_hvac(objects,method:str=Columns.OCCUPANCY_GEOMA):
     ])
 
     for idx,obj in tqdm.tqdm(objects.iterrows(), total=len(objects), desc="Summaryzing HVAC"):
-        
-        
-        #print(f"Processing ID: {obj[Columns.ID]}, year:{obj["year"]}")
 
         obj_id =str(obj[Objects.ID])
         obj_year=obj["year"]
-    
         
         obj_stories=obj["stories"]
         obj_state=obj["state"]
@@ -520,7 +531,37 @@ def summarize_hvac(objects,method:str=Columns.OCCUPANCY_GEOMA):
         df_hvac=pd.read_csv(f"{hvac_folder}/{method}/{obj_id}_{obj_year}.csv")
         df_hvac_real=pd.read_csv(f"{demand_folder}/{obj_id}.csv")
 
+        # RMSE calculation
+
+        sim_h = df_hvac[f"{Types.HEATING}_{Columns.DEMAND}[W]"].fillna(0).values
+        real_h = df_hvac_real[f"{Types.HEATING}_{Columns.DEMAND}[W]"].fillna(0).values
         
+        sim_c = df_hvac[f"{Types.COOLING}_{Columns.DEMAND}[W]"].fillna(0).values
+        real_c = df_hvac_real[f"{Types.COOLING}_{Columns.DEMAND}[W]"].fillna(0).values
+        rmse_h = float(numpy.sqrt(numpy.mean((sim_h - real_h)**2)))
+        rmse_c = float(numpy.sqrt(numpy.mean((sim_c - real_c)**2)))
+
+        # Peak real loads (to normalize RMSE)
+        peak_real_h = real_h.max() if real_h.max() > 0 else numpy.nan
+        peak_real_c = real_c.max() if real_c.max() > 0 else numpy.nan
+
+        # RMSE per m²
+        rmse_h_area = rmse_h / obj_area
+        rmse_c_area = rmse_c / obj_area
+
+        # RMSE as % of peak real load
+        rmse_h_pct = rmse_h / peak_real_h if peak_real_h not in [0, numpy.nan] else numpy.nan
+        rmse_c_pct = rmse_c / peak_real_c if peak_real_c not in [0, numpy.nan] else numpy.nan
+
+        # Save in summary dataframe
+        df_summary.at[idx, "RMSE_heating[W]"] = round(rmse_h, 2)
+        df_summary.at[idx, "RMSE_cooling[W]"] = round(rmse_c, 2)
+
+        df_summary.at[idx, "RMSE_heating[W/m²]"] = round(rmse_h_area, 4)
+        df_summary.at[idx, "RMSE_cooling[W/m²]"] = round(rmse_c_area, 4)
+
+        df_summary.at[idx, "RMSE_heating[%peak]"] = round(rmse_h_pct, 4)
+        df_summary.at[idx, "RMSE_cooling[%peak]"] = round(rmse_c_pct, 4)
 
         df_summary.at[idx,Objects.ID] = obj_id
         df_summary.at[idx, "method"] = method 
@@ -550,6 +591,8 @@ def summarize_hvac(objects,method:str=Columns.OCCUPANCY_GEOMA):
         df_summary.at[idx,f"{Types.COOLING}_{Columns.DEMAND}_simulated[kWh]/{Objects.AREA}"]=   round(((df_hvac[f"{Types.COOLING}_{Columns.DEMAND}[W]"].sum()/4)/1000)/obj_area,1)
         df_summary.at[idx,f"{Types.COOLING}_{Columns.DEMAND}_real[kWh]/{Objects.AREA}"]     =   round(((df_hvac_real[f"{Types.COOLING}_{Columns.DEMAND}[W]"].sum()/4)/1000)/obj_area,1)
 
+        df_summary.at[idx, "RMSE_heating[W]"] = round(rmse_h, 2)
+        df_summary.at[idx, "RMSE_cooling[W]"] = round(rmse_c, 2)
         
     df_summary.to_csv(f"results/hvac_summary_{method}.csv",index=False)
     return df_summary
@@ -812,23 +855,17 @@ def get_real_demand_files(objects:pd.DataFrame):
         real_demand.to_csv(f"{demand_folder}/{obj[Columns.ID]}.csv",index=False)
 
 def calculate_fit_score(df,method=Columns.OCCUPANCY_GEOMA,name=""):
-    #df=pd.read_csv(f"results/hvac_summary_{method}.csv")
 
-    df["heating_demand_error"] = round((df["heating_demand_simulated[kWh]"] - df["heating_demand_real[kWh]"]).abs(),2)
-    #df["heating_load_error"]   = (df["heating_load_simulated_max[kW]"] - df["heating_load_real_max[kW]"]).abs()
-    df["cooling_demand_error"] = round((df["cooling_demand_simulated[kWh]"] - df["cooling_demand_real[kWh]"]).abs(),2)
-    #df["cooling_load_error"]   = (df["cooling_load_simulated_max[kW]"] - df["cooling_load_real_max[kW]"]).abs()
+    df["heating_demand_error"] = round((df["heating_demand_simulated[kWh]/area[m2]"] - df["heating_demand_real[kWh]/area[m2]"]))
+    df["cooling_demand_error"] = round((df["cooling_demand_simulated[kWh]/area[m2]"] - df["cooling_demand_real[kWh]/area[m2]"]))
 
-    df["heating_demand_rel_error"] = round(df["heating_demand_error"] / df["heating_demand_real[kWh]"].replace(0, numpy.nan),2)
-    #df["heating_load_rel_error"]   = df["heating_load_error"] / df["heating_load_real_max[kW]"].replace(0, numpy.nan)
-    df["cooling_demand_rel_error"] = round(df["cooling_demand_error"] / df["cooling_demand_real[kWh]"].replace(0, numpy.nan),2)
-    #df["cooling_load_rel_error"]   = df["cooling_load_error"] / df["cooling_load_real_max[kW]"].replace(0, numpy.nan)
+    df["heating_demand_rel_error"] = round(df["heating_demand_error"] / df["heating_demand_real[kWh]"].replace(0, numpy.nan))
+    df["cooling_demand_rel_error"] = round(df["cooling_demand_error"] / df["cooling_demand_real[kWh]"].replace(0, numpy.nan))
+
 
     df["fit_score"] = df[[
     "heating_demand_rel_error",
-    #"heating_load_rel_error",
     "cooling_demand_rel_error",
-    #"cooling_load_rel_error"
     ]].mean(axis=1)
 
     df = df.sort_values("fit_score", ascending=True)
@@ -964,3 +1001,60 @@ def add_average_detected_occupancy(method=Columns.OCCUPANCY_GEOMA):
     df.to_csv("data/validation/objects_entise_occupancy.csv",index=False)    
 
 #add_average_detected_occupancy()
+
+
+def summary_weather_timeseries():
+
+
+    files = {
+        "cold": "cold.csv",
+        "very cold": "very cold.csv",
+        "hot dry": "hot dry.csv",
+        "hot humid": "hot humid.csv",
+        "mixed dry": "mixed dry.csv",
+        "marine": "marine.csv",
+    }
+
+    # Define seasons (Northern Hemisphere typical)
+    cooling_months = [5, 6, 7, 8, 9]      # May–September
+    heating_months = [1, 2, 3, 4, 10, 11, 12]
+
+    results = []
+
+    for zone, path in files.items():
+        df = pd.read_csv("data/validation/weather/cleaned/"+path, parse_dates=["datetime"])
+        df = df.sort_values("datetime").reset_index(drop=True)
+
+        # Extract months
+        df["month"] = df["datetime"].dt.month
+
+        # Cooling & heating seasons
+        df_cooling = df[df["month"].isin(cooling_months)]
+        df_heating = df[df["month"].isin(heating_months)]
+
+        avg_cooling = df_cooling["air_temperature[C]"].mean()
+        avg_heating = df_heating["air_temperature[C]"].mean()
+
+        # Temperature difference between consecutive timesteps
+        df["temp_diff"] = df["air_temperature[C]"].diff().abs()
+
+        # Maximum fluctuation magnitude
+        max_fluctuation = df["temp_diff"].max()
+
+        # Timestamp when it occurred
+        # (the diff refers to the jump from timestep i-1 → i, so we take timestamp at index i)
+        idx = df["temp_diff"].idxmax()
+        timestamp_max_fluct = df.loc[idx, "datetime"]
+
+        results.append({
+            "climate_zone": zone,
+            "avg_cooling_season[C]": avg_cooling,
+            "avg_heating_season[C]": avg_heating,
+            "max_timestep_fluctuation[C]": max_fluctuation,
+            "timestamp_of_max_fluctuation": timestamp_max_fluct,
+        })
+
+    summary = pd.DataFrame(results)
+    summary.to_csv("weather_timeseries.csv",index=False)
+
+summary_weather_timeseries()

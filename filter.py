@@ -259,3 +259,17 @@ def get_unique_offset_periods():
     print(f"Cooling offset periods:{cooling_offset_periods}")
 
 
+def rename_demand_files():
+    objects=pd.read_csv("objects.csv")
+    files = os.listdir("data/")
+    for idx,o in objects.iterrows():
+        try:
+            os.rename(f"data/{o.id}_.csv",f"data/{o.id}_demand_{o.inhabitants}_occupants.csv")
+            
+        except FileNotFoundError as e:
+            continue
+
+    objects["electricity:filename"]=f"{objects["id"]}_demand_{objects["inhabitants"]}_occupants"
+    objects.to_csv("objects.csv")
+
+rename_demand_files()

@@ -21,15 +21,43 @@ from validate import (derive_hvac,
                       summarize_hvac, calculate_fit_score)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 climate_zone="marine"
 gains_per_person=65
 reduce_shading=1
 reduce_window_area=1
-ventilation_mode="typical"
+ventilation_mode="optimal"
 capacitance_factor=1
 resistance_factor=1
-
-
 
 #filter_single_family_detached()
 
@@ -50,29 +78,29 @@ objects=pd.read_csv("data/validation/objects_entise.csv")
 #get_real_demand_files(objects)
 
 #derive_occupancy_schedule(objects=objects)
-
-#derive_internal_gains(objects=objects,gains_per_person=gains_per_person)
-
+#
+derive_internal_gains(objects=objects,gains_per_person=gains_per_person)
+#
 #derive_solar_gains(objects,reduce_shading)
-
-derive_hvac(objects,capacitance_factor=capacitance_factor,resistance_factor=resistance_factor,ventilation_mode=ventilation_mode,method=Columns.OCCUPANCY_GEOMA)
+#
+#derive_hvac(objects,capacitance_factor=capacitance_factor,resistance_factor=resistance_factor,ventilation_mode=ventilation_mode,method=Columns.OCCUPANCY_GEOMA)
 
 df_summary=summarize_hvac(objects,Columns.OCCUPANCY_GEOMA)
 
-distribution_thermal_props(df_summary,thermal_prop=Objects.RESISTANCE)
-distribution_thermal_props(df_summary,thermal_prop=Objects.CAPACITANCE)
-plot_bar_plot_resistance_capacitance(df_summary)
+#distribution_thermal_props(df_summary,thermal_prop=Objects.RESISTANCE)
+#distribution_thermal_props(df_summary,thermal_prop=Objects.CAPACITANCE)
+#plot_bar_plot_resistance_capacitance(df_summary)
 
 df_best=calculate_fit_score(df_summary,Columns.OCCUPANCY_GEOMA,name=f"vent_{ventilation_mode}_wshade_{reduce_shading}_warea_{reduce_window_area}_gpp_{gains_per_person}_capac_{capacitance_factor}_resis_{resistance_factor}")
 
-barplot_ranking_fit_score(Columns.OCCUPANCY_GEOMA,name=f"vent_{ventilation_mode}_wshade_{reduce_shading}_warea_{reduce_window_area}_gpp_{gains_per_person}_capac_{capacitance_factor}_resis_{resistance_factor}")
+#barplot_ranking_fit_score(Columns.OCCUPANCY_GEOMA,name=f"vent_{ventilation_mode}_wshade_{reduce_shading}_warea_{reduce_window_area}_gpp_{gains_per_person}_capac_{capacitance_factor}_resis_{resistance_factor}")
 
-hvac_loads_comparison(objects=df_best,res_factor=resistance_factor,cap_factor=capacitance_factor,solar_gains_factor=reduce_shading,method=Columns.OCCUPANCY_GEOMA)
+#hvac_loads_comparison(objects=df_best,res_factor=resistance_factor,cap_factor=capacitance_factor,solar_gains_factor=reduce_shading,method=Columns.OCCUPANCY_GEOMA)
 
 df_melt_best_results=melt_best_results(df_best)
-
-normalized_individual_boxplot(df_melt_best_results)
 normalized_joint_boxplot(df_melt_best_results)
+normalized_individual_boxplot(df_melt_best_results)
+
 
 
 
