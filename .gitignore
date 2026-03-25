@@ -1,11 +1,3 @@
-data/validation/demand
-data/validation/hvac
-data/validation/internal_gains
-data/validation/tipology
-data/validation/occupancy
-data/validation/solar_gains
-data/validation/ventilation
-data/validation/temperature_setpoints
-results
-
+*.png
+*.pyc
 

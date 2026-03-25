@@ -1,261 +1,261 @@
-id,year,electricity,electricity:filename,occupancy,inhabitants,weather,area[m2],height[m],latitude[degree],longitude[degree],min_temperature[C],max_temperature[C],stories
-68993_1918,1918,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0
-68993_1919,1919,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0
-68993_1949,1949,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0
-68993_1958,1958,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0
-68993_1969,1969,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0
-68993_1979,1979,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0
-68993_1984,1984,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0
-68993_1995,1995,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0
-68993_2002,2002,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0
-68993_2009,2009,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0
-71009_1918,1918,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0
-71009_1919,1919,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0
-71009_1949,1949,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0
-71009_1958,1958,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0
-71009_1969,1969,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0
-71009_1979,1979,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0
-71009_1984,1984,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0
-71009_1995,1995,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0
-71009_2002,2002,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0
-71009_2009,2009,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0
-86716_1918,1918,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0
-86716_1919,1919,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0
-86716_1949,1949,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0
-86716_1958,1958,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0
-86716_1969,1969,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0
-86716_1979,1979,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0
-86716_1984,1984,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0
-86716_1995,1995,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0
-86716_2002,2002,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0
-86716_2009,2009,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0
-87413_1918,1918,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-87413_1919,1919,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-87413_1949,1949,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-87413_1958,1958,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-87413_1969,1969,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-87413_1979,1979,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-87413_1984,1984,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-87413_1995,1995,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-87413_2002,2002,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-87413_2009,2009,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-130744_1918,1918,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0
-130744_1919,1919,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0
-130744_1949,1949,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0
-130744_1958,1958,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0
-130744_1969,1969,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0
-130744_1979,1979,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0
-130744_1984,1984,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0
-130744_1995,1995,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0
-130744_2002,2002,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0
-130744_2009,2009,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0
-196069_1918,1918,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0
-196069_1919,1919,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0
-196069_1949,1949,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0
-196069_1958,1958,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0
-196069_1969,1969,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0
-196069_1979,1979,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0
-196069_1984,1984,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0
-196069_1995,1995,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0
-196069_2002,2002,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0
-196069_2009,2009,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0
-234774_1918,1918,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0
-234774_1919,1919,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0
-234774_1949,1949,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0
-234774_1958,1958,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0
-234774_1969,1969,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0
-234774_1979,1979,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0
-234774_1984,1984,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0
-234774_1995,1995,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0
-234774_2002,2002,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0
-234774_2009,2009,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0
-255488_1918,1918,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0
-255488_1919,1919,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0
-255488_1949,1949,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0
-255488_1958,1958,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0
-255488_1969,1969,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0
-255488_1979,1979,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0
-255488_1984,1984,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0
-255488_1995,1995,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0
-255488_2002,2002,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0
-255488_2009,2009,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0
-255879_1918,1918,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0
-255879_1919,1919,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0
-255879_1949,1949,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0
-255879_1958,1958,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0
-255879_1969,1969,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0
-255879_1979,1979,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0
-255879_1984,1984,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0
-255879_1995,1995,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0
-255879_2002,2002,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0
-255879_2009,2009,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0
-265047_1918,1918,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0
-265047_1919,1919,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0
-265047_1949,1949,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0
-265047_1958,1958,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0
-265047_1969,1969,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0
-265047_1979,1979,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0
-265047_1984,1984,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0
-265047_1995,1995,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0
-265047_2002,2002,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0
-265047_2009,2009,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0
-288215_1918,1918,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0
-288215_1919,1919,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0
-288215_1949,1949,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0
-288215_1958,1958,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0
-288215_1969,1969,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0
-288215_1979,1979,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0
-288215_1984,1984,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0
-288215_1995,1995,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0
-288215_2002,2002,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0
-288215_2009,2009,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0
-302452_1918,1918,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0
-302452_1919,1919,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0
-302452_1949,1949,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0
-302452_1958,1958,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0
-302452_1969,1969,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0
-302452_1979,1979,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0
-302452_1984,1984,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0
-302452_1995,1995,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0
-302452_2002,2002,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0
-302452_2009,2009,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0
-311843_1918,1918,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-311843_1919,1919,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-311843_1949,1949,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-311843_1958,1958,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-311843_1969,1969,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-311843_1979,1979,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-311843_1984,1984,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-311843_1995,1995,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-311843_2002,2002,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-311843_2009,2009,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-332001_1918,1918,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0
-332001_1919,1919,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0
-332001_1949,1949,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0
-332001_1958,1958,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0
-332001_1969,1969,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0
-332001_1979,1979,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0
-332001_1984,1984,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0
-332001_1995,1995,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0
-332001_2002,2002,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0
-332001_2009,2009,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0
-392777_1918,1918,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0
-392777_1919,1919,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0
-392777_1949,1949,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0
-392777_1958,1958,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0
-392777_1969,1969,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0
-392777_1979,1979,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0
-392777_1984,1984,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0
-392777_1995,1995,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0
-392777_2002,2002,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0
-392777_2009,2009,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0
-394422_1918,1918,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0
-394422_1919,1919,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0
-394422_1949,1949,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0
-394422_1958,1958,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0
-394422_1969,1969,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0
-394422_1979,1979,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0
-394422_1984,1984,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0
-394422_1995,1995,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0
-394422_2002,2002,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0
-394422_2009,2009,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0
-418445_1918,1918,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0
-418445_1919,1919,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0
-418445_1949,1949,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0
-418445_1958,1958,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0
-418445_1969,1969,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0
-418445_1979,1979,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0
-418445_1984,1984,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0
-418445_1995,1995,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0
-418445_2002,2002,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0
-418445_2009,2009,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0
-442855_1918,1918,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0
-442855_1919,1919,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0
-442855_1949,1949,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0
-442855_1958,1958,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0
-442855_1969,1969,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0
-442855_1979,1979,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0
-442855_1984,1984,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0
-442855_1995,1995,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0
-442855_2002,2002,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0
-442855_2009,2009,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0
-482749_1918,1918,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0
-482749_1919,1919,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0
-482749_1949,1949,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0
-482749_1958,1958,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0
-482749_1969,1969,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0
-482749_1979,1979,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0
-482749_1984,1984,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0
-482749_1995,1995,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0
-482749_2002,2002,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0
-482749_2009,2009,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0
-483908_1918,1918,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0
-483908_1919,1919,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0
-483908_1949,1949,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0
-483908_1958,1958,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0
-483908_1969,1969,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0
-483908_1979,1979,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0
-483908_1984,1984,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0
-483908_1995,1995,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0
-483908_2002,2002,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0
-483908_2009,2009,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0
-488971_1918,1918,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0
-488971_1919,1919,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0
-488971_1949,1949,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0
-488971_1958,1958,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0
-488971_1969,1969,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0
-488971_1979,1979,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0
-488971_1984,1984,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0
-488971_1995,1995,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0
-488971_2002,2002,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0
-488971_2009,2009,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0
-491566_1918,1918,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0
-491566_1919,1919,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0
-491566_1949,1949,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0
-491566_1958,1958,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0
-491566_1969,1969,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0
-491566_1979,1979,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0
-491566_1984,1984,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0
-491566_1995,1995,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0
-491566_2002,2002,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0
-491566_2009,2009,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0
-492842_1918,1918,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0
-492842_1919,1919,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0
-492842_1949,1949,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0
-492842_1958,1958,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0
-492842_1969,1969,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0
-492842_1979,1979,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0
-492842_1984,1984,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0
-492842_1995,1995,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0
-492842_2002,2002,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0
-492842_2009,2009,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0
-494227_1918,1918,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-494227_1919,1919,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-494227_1949,1949,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-494227_1958,1958,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-494227_1969,1969,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-494227_1979,1979,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-494227_1984,1984,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-494227_1995,1995,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-494227_2002,2002,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-494227_2009,2009,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0
-509301_1918,1918,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0
-509301_1919,1919,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0
-509301_1949,1949,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0
-509301_1958,1958,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0
-509301_1969,1969,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0
-509301_1979,1979,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0
-509301_1984,1984,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0
-509301_1995,1995,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0
-509301_2002,2002,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0
-509301_2009,2009,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0
-525662_1918,1918,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-525662_1919,1919,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-525662_1949,1949,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-525662_1958,1958,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-525662_1969,1969,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-525662_1979,1979,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-525662_1984,1984,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-525662_1995,1995,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-525662_2002,2002,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
-525662_2009,2009,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0
+id,year,electricity,electricity:filename,occupancy,inhabitants,weather,area[m2],height[m],latitude[degree],longitude[degree],min_temperature[C],max_temperature[C],stories,gains_internal[W],gains_internal_column,gains_internal[W]_per_person[W],ventilation [W K-1],ventilation_column
+68993_1918,1918,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+68993_1919,1919,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+68993_1949,1949,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+68993_1958,1958,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+68993_1969,1969,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+68993_1979,1979,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+68993_1984,1984,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+68993_1995,1995,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+68993_2002,2002,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+68993_2009,2009,file,68993_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,15.56,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+71009_1918,1918,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+71009_1919,1919,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+71009_1949,1949,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+71009_1958,1958,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+71009_1969,1969,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+71009_1979,1979,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+71009_1984,1984,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+71009_1995,1995,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+71009_2002,2002,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+71009_2009,2009,file,71009_demand_6_occupants,geoma,6,marine,157.00613760000002,2.5,46.16,-123.88,19.44,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+86716_1918,1918,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+86716_1919,1919,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+86716_1949,1949,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+86716_1958,1958,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+86716_1969,1969,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+86716_1979,1979,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+86716_1984,1984,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+86716_1995,1995,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+86716_2002,2002,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+86716_2009,2009,file,86716_demand_1_occupants,geoma,1,marine,157.00613760000002,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+87413_1918,1918,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+87413_1919,1919,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+87413_1949,1949,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+87413_1958,1958,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+87413_1969,1969,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+87413_1979,1979,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+87413_1984,1984,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+87413_1995,1995,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+87413_2002,2002,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+87413_2009,2009,file,87413_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+130744_1918,1918,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+130744_1919,1919,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+130744_1949,1949,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+130744_1958,1958,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+130744_1969,1969,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+130744_1979,1979,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+130744_1984,1984,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+130744_1995,1995,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+130744_2002,2002,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+130744_2009,2009,file,130744_demand_4_occupants,geoma,4,marine,202.15701504,2.5,46.16,-123.88,18.33,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+196069_1918,1918,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+196069_1919,1919,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+196069_1949,1949,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+196069_1958,1958,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+196069_1969,1969,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+196069_1979,1979,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+196069_1984,1984,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+196069_1995,1995,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+196069_2002,2002,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+196069_2009,2009,file,196069_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+234774_1918,1918,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+234774_1919,1919,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+234774_1949,1949,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+234774_1958,1958,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+234774_1969,1969,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+234774_1979,1979,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+234774_1984,1984,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+234774_1995,1995,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+234774_2002,2002,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+234774_2009,2009,file,234774_demand_1_occupants,geoma,1,marine,202.15701504,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255488_1918,1918,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255488_1919,1919,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255488_1949,1949,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255488_1958,1958,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255488_1969,1969,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255488_1979,1979,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255488_1984,1984,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255488_1995,1995,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255488_2002,2002,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255488_2009,2009,file,255488_demand_3_occupants,geoma,3,marine,58.80762432,2.5,46.16,-123.88,20.0,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255879_1918,1918,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255879_1919,1919,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255879_1949,1949,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255879_1958,1958,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255879_1969,1969,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255879_1979,1979,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255879_1984,1984,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255879_1995,1995,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255879_2002,2002,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+255879_2009,2009,file,255879_demand_2_occupants,geoma,2,marine,82.2191904,2.5,46.16,-123.88,22.22,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+265047_1918,1918,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+265047_1919,1919,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+265047_1949,1949,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+265047_1958,1958,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+265047_1969,1969,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+265047_1979,1979,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+265047_1984,1984,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+265047_1995,1995,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+265047_2002,2002,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+265047_2009,2009,file,265047_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,21.11,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+288215_1918,1918,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+288215_1919,1919,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+288215_1949,1949,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+288215_1958,1958,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+288215_1969,1969,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+288215_1979,1979,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+288215_1984,1984,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+288215_1995,1995,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+288215_2002,2002,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+288215_2009,2009,file,288215_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,19.44,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+302452_1918,1918,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+302452_1919,1919,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+302452_1949,1949,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+302452_1958,1958,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+302452_1969,1969,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+302452_1979,1979,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+302452_1984,1984,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+302452_1995,1995,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+302452_2002,2002,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+302452_2009,2009,file,302452_demand_2_occupants,geoma,2,marine,202.15701504,7.5,46.16,-123.88,18.33,22.22,3.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+311843_1918,1918,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+311843_1919,1919,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+311843_1949,1949,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+311843_1958,1958,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+311843_1969,1969,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+311843_1979,1979,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+311843_1984,1984,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+311843_1995,1995,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+311843_2002,2002,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+311843_2009,2009,file,311843_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+332001_1918,1918,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+332001_1919,1919,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+332001_1949,1949,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+332001_1958,1958,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+332001_1969,1969,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+332001_1979,1979,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+332001_1984,1984,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+332001_1995,1995,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+332001_2002,2002,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+332001_2009,2009,file,332001_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,16.67,25.56,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+392777_1918,1918,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+392777_1919,1919,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+392777_1949,1949,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+392777_1958,1958,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+392777_1969,1969,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+392777_1979,1979,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+392777_1984,1984,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+392777_1995,1995,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+392777_2002,2002,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+392777_2009,2009,file,392777_demand_2_occupants,geoma,2,marine,157.00613760000002,5.0,46.16,-123.88,18.33,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+394422_1918,1918,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+394422_1919,1919,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+394422_1949,1949,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+394422_1958,1958,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+394422_1969,1969,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+394422_1979,1979,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+394422_1984,1984,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+394422_1995,1995,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+394422_2002,2002,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+394422_2009,2009,file,394422_demand_1_occupants,geoma,1,marine,247.40079552,5.0,46.16,-123.88,21.11,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+418445_1918,1918,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+418445_1919,1919,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+418445_1949,1949,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+418445_1958,1958,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+418445_1969,1969,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+418445_1979,1979,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+418445_1984,1984,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+418445_1995,1995,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+418445_2002,2002,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+418445_2009,2009,file,418445_demand_1_occupants,geoma,1,marine,761.2475097600001,2.5,46.16,-123.88,15.56,25.56,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+442855_1918,1918,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+442855_1919,1919,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+442855_1949,1949,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+442855_1958,1958,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+442855_1969,1969,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+442855_1979,1979,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+442855_1984,1984,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+442855_1995,1995,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+442855_2002,2002,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+442855_2009,2009,file,442855_demand_2_occupants,geoma,2,marine,58.80762432,2.5,46.16,-123.88,21.11,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+482749_1918,1918,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+482749_1919,1919,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+482749_1949,1949,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+482749_1958,1958,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+482749_1969,1969,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+482749_1979,1979,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+482749_1984,1984,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+482749_1995,1995,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+482749_2002,2002,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+482749_2009,2009,file,482749_demand_2_occupants,geoma,2,marine,157.00613760000002,2.5,46.16,-123.88,19.44,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+483908_1918,1918,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+483908_1919,1919,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+483908_1949,1949,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+483908_1958,1958,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+483908_1969,1969,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+483908_1979,1979,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+483908_1984,1984,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+483908_1995,1995,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+483908_2002,2002,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+483908_2009,2009,file,483908_demand_2_occupants,geoma,2,marine,202.15701504,5.0,46.16,-123.88,20.0,23.89,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+488971_1918,1918,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+488971_1919,1919,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+488971_1949,1949,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+488971_1958,1958,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+488971_1969,1969,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+488971_1979,1979,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+488971_1984,1984,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+488971_1995,1995,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+488971_2002,2002,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+488971_2009,2009,file,488971_demand_3_occupants,geoma,3,marine,113.3417088,2.5,46.16,-123.88,19.44,21.11,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+491566_1918,1918,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+491566_1919,1919,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+491566_1949,1949,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+491566_1958,1958,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+491566_1969,1969,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+491566_1979,1979,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+491566_1984,1984,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+491566_1995,1995,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+491566_2002,2002,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+491566_2009,2009,file,491566_demand_1_occupants,geoma,1,marine,113.3417088,2.5,46.16,-123.88,18.33,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+492842_1918,1918,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+492842_1919,1919,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+492842_1949,1949,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+492842_1958,1958,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+492842_1969,1969,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+492842_1979,1979,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+492842_1984,1984,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+492842_1995,1995,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+492842_2002,2002,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+492842_2009,2009,file,492842_demand_4_occupants,geoma,4,marine,157.00613760000002,5.0,46.16,-123.88,18.33,19.44,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+494227_1918,1918,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+494227_1919,1919,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+494227_1949,1949,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+494227_1958,1958,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+494227_1969,1969,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+494227_1979,1979,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+494227_1984,1984,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+494227_1995,1995,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+494227_2002,2002,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+494227_2009,2009,file,494227_demand_6_occupants,geoma,6,marine,113.3417088,2.5,46.16,-123.88,20.0,23.89,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+509301_1918,1918,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+509301_1919,1919,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+509301_1949,1949,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+509301_1958,1958,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+509301_1969,1969,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+509301_1979,1979,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+509301_1984,1984,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+509301_1995,1995,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+509301_2002,2002,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+509301_2009,2009,file,509301_demand_1_occupants,geoma,1,marine,202.15701504,5.0,46.16,-123.88,18.33,22.22,2.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+525662_1918,1918,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+525662_1919,1919,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+525662_1949,1949,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+525662_1958,1958,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+525662_1969,1969,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+525662_1979,1979,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+525662_1984,1984,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+525662_1995,1995,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+525662_2002,2002,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]
+525662_2009,2009,file,525662_demand_3_occupants,geoma,3,marine,157.00613760000002,2.5,46.16,-123.88,20.0,22.22,1.0,internal_gains,gains_internal[W],65,ach_series,typical [1/h]

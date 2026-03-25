@@ -1,4 +1,4 @@
-datetime,power[W],heating_demand[W],total_power[W],cooling_demand[W]
+datetime,power[W],heating:load[W],total_power[W],cooling:load[W]
 2018-01-01 00:00:00,652.0,20000.0,5552.0,0.0
 2018-01-01 00:15:00,1560.0,19125.0,5552.0,0.0
 2018-01-01 00:30:00,1560.0,18482.0,6044.0,0.0
