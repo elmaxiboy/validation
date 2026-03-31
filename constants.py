@@ -1,12 +1,12 @@
 import pandas as pd
 
 CLIMATE_ZONES = {
-    "hot dry": {"base": 0.5, "season_amp": 0.3},
-    "hot humid": {"base": 0.7, "season_amp": 0.25},
-    "mixed dry": {"base": 0.6, "season_amp": 0.20},
-    "cold": {"base": 0.4, "season_amp": 0.35},
-    "very cold": {"base": 0.3, "season_amp": 0.40},
-    "marine": {"base": 0.5, "season_amp": 0.20},
+    "hot dry"   : {"base": 0.5, "season_amp": 0.3},
+    "hot humid" : {"base": 0.7, "season_amp": 0.25},
+    "mixed dry" : {"base": 0.6, "season_amp": 0.20},
+    "cold"      : {"base": 0.4, "season_amp": 0.35},
+    "very cold" : {"base": 0.3, "season_amp": 0.40},
+    "marine"    : {"base": 0.5, "season_amp": 0.20},
 }
 
 VENTILATION_MODES = {
